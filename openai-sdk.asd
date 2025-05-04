@@ -4,13 +4,14 @@
   :description "OpenAI SDK API"
   :author "Jeffrey Meissen <jeffrey@meissen.email>"
   :license  "MIT"
-  :version "0.1.0"
+  :version "0.2.0"
   :serial t
   :components ((:module "src"
                 :components ((:file "util")
-                             (:file "generics")
+                             (:file "core")
                              (:file "client")
                              (:file "response")
+                             (:file "chat-completion")
                              (:file "request")
                              (:file "openai-sdk"))))
   :depends-on (:dexador

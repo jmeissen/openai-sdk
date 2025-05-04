@@ -2,10 +2,11 @@
 
 (defpackage openai-sdk/response
   (:use #:cl
-        #:openai-sdk/generics
+        #:openai-sdk/core
         #:openai-sdk/util)
   (:shadow #:type
            #:function)
+  (:shadowing-import-from #:openai-sdk/core #:format)
   (:export #:accepted-prediction-tokens
            #:annotations
            #:arguments

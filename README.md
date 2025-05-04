@@ -3,9 +3,8 @@ Common Lisp [OpenAI SDK](https://platform.openai.com/docs/api-reference/introduc
 implementation.
 
 Disclaimer: this is a **work in progress**! Stuff is definitely missing, even the
-`create-chat-completion` is largely untested (think function calling, etc.). I'm
-thinking about making the requests into classes as well, but I'm playing with it as
-I'm building, so we'll see. This project will follow semantic versioning.
+`create-chat-completion` is largely untested (think function calling, etc.).
+This project follows semantic versioning.
 
 # Use
 ```lisp
@@ -51,36 +50,18 @@ adhering to the OpenAI SDK.
 
 ## Create Chat Completion generic
 ```lisp
-(defgeneric create-chat-completion (openai messages
-                                    &rest content-plist
-                                    &key model audio
-                                      frequency-penalty function-call
-                                      functions logit-bias
-                                      logprobs max-completion-tokens
-                                      max-tokens metadata
-                                      modalities n
-                                      parallel-tool-calls prediction
-                                      presence-penalty reasoning-effort
-                                      response-format seed
-                                      service-tier stop
-                                      store
-                                      ;; stream stream-options
-                                      temperature
-                                      tool-choice tools
-                                      top-logprobs top-p
-                                      user web-search-options)
-  (:documentation "https://platform.openai.com/docs/api-reference/chat/create"))
+(create-chat-completion (openai chat-completion))
 ```
 
 ## Different message types
 ```lisp
-(defun make-function-message (name &rest args &key content) ...)
-(defun make-developer-message (content &rest args &key name) ...)
-(defun make-system-message (content &rest args &key name) ...)
-(defun make-user-message (content &rest args &key name) ...)
-(defun make-tool-message (content tool-call-id) ...)
-(defun make-assistant-message (&rest args &key audio content function-call name refusal
-                                            tool-calls) ...)
+(oai:make-function-message (name &rest args &key content))
+(oai:make-developer-message (content &rest args &key name))
+(oai:make-system-message (content &rest args &key name))
+(oai:make-user-message (content &rest args &key name))
+(oai:make-tool-message (content tool-call-id))
+(oai:make-assistant-message (&rest args &key audio content function-call name refusal
+                                            tool-calls))
 ```
 
 # Install
@@ -101,8 +82,9 @@ git clone https://github.com/jmeissen/openai-sdk ~/.quicklisp/local-projects/
 (ql:quickload :openai-sdk)
 ```
 
-# Goal
-The goal is to make request creation as intuitive and painless as possible, so
+# Future goal
+
+I want request creation as intuitive and painless as possible, so
 multiple input types for request creation will be supported.
 
 For example, when using the Chat Completion API
