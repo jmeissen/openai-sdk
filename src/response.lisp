@@ -4,9 +4,7 @@
   (:use #:cl
         #:openai-sdk/core
         #:openai-sdk/util)
-  (:shadow #:type
-           #:function)
-  (:shadowing-import-from #:openai-sdk/core #:format)
+  (:shadowing-import-from #:openai-sdk/core #:format #:type #:function)
   (:export #:accepted-prediction-tokens
            #:annotations
            #:arguments
