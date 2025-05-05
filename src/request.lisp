@@ -34,10 +34,10 @@
             uri
             stream)))
 
-(defgeneric create-chat-completion (openai chat-completion)
+(defgeneric create-chat-completion (chat-completion &optional openai)
   (:documentation "https://platform.openai.com/docs/api-reference/chat/create"))
 
-(defmethod create-chat-completion :around ((openai openai) chat-completion)
+(defmethod create-chat-completion :around (chat-completion &optional (openai openai-sdk/client:*openai*))
   (request :post (base-url openai) "chat/completions"
            (api-key openai)
            (remove-if #'null (list (car (openai-sdk/client:default-headers openai))
@@ -53,21 +53,10 @@
            (jzon:stringify (call-next-method))
            'openai-sdk/response:make-chat-completion))
 
-(defmethod create-chat-completion ((openai openai) (chat-completion openai-sdk/chat-completion:chat-completion))
+(defmethod create-chat-completion (messages &optional (openai openai-sdk/client:*openai*))
+  (openai-sdk/chat-completion:make-chat-completion messages :model (default-model openai)))
+
+(defmethod create-chat-completion ((chat-completion openai-sdk/chat-completion:chat-completion) &optional (openai openai-sdk/client:*openai*))
+  (unless (slot-boundp chat-completion 'openai-sdk/chat-completion:model)
+    (setf (openai-sdk/chat-completion:model chat-completion) (default-model openai)))
   chat-completion)
-
-(defmethod create-chat-completion ((openai openai) (chat-completion string))
-  (openai-sdk/response:make-chat-completion (default-model openai) (list (openai-sdk/chat-completion:make-user-message chat-completion))))
-
-(defmethod create-chat-completion ((openai openai) (chat-completion list))
-  (flet ((generate-message (msg)
-           (cond ((and (consp msg) (keywordp (car msg)) (or (stringp (cadr msg)) (consp (cadr msg))))
-                  (apply #'openai-sdk/chat-completion:make-message-from-keyword msg))
-                 ((stringp msg)
-                  (openai-sdk/chat-completion:make-user-message msg))
-                 ((typep msg 'openai-sdk/response:message)
-                  msg))))
-    (openai-sdk/chat-completion:make-chat-completion
-     (default-model openai)
-     (loop for message in chat-completion
-           collect (generate-message message)))))

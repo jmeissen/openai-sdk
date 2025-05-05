@@ -8,9 +8,9 @@ This project follows semantic versioning.
 
 # Use
 ```lisp
-(defvar *openai* (oai:make-openai "<api-key>"))
+(oai:make-openai "<api-key>") ; Will be set in OAI:*OPENAI*
 (oai:content (oai:message (aref (oai:choices
-                                  (oai:create-chat-completion *openai* "Hello, world!"))
+                                  (oai:create-chat-completion "Hello, world!"))
                                 0)))
 ```
 
@@ -48,9 +48,9 @@ adhering to the OpenAI SDK.
                   :initform *default-model*)))
 ```
 
-## Create Chat Completion generic
+## Generic create chat completion
 ```lisp
-(create-chat-completion (openai chat-completion))
+(create-chat-completion (chat-completion &optional openai))
 ```
 
 Currently supports the following `chat-completion` specializations:
@@ -62,28 +62,44 @@ Currently supports the following `chat-completion` specializations:
 ### List
 
 ```lisp
-CL-USER> (oai:create-chat-completion *openai* `((:system "Find the required parameters according to the user specification sourcing from the provided document.")
-                                                (:user ("Here's the document and an image, do what you must!"
-                                                        #p"test-file.pdf"
-                                                        "https://something.com/whatever.jpg"))))
+CL-USER> (oai:create-chat-completion `((:system "Find the required parameters according to the user specification sourcing from the provided document.")
+                                       (:user ("Here's the document and an image, do what you must!"
+                                               #p"test-file.pdf"
+                                               "https://something.com/whatever.jpg"))))
 ```
 
-Will transform the chat-completion into the following:
+Will first call `openai-sdk/chat-completion:make-message-from-keyword` to transform the chat-completion into the following:
 ```lisp
 (#<OPENAI-SDK/CHAT-COMPLETION:SYSTEM-MESSAGE>
  #<OPENAI-SDK/CHAT-COMPLETION:USER-MESSAGE>)
 ```
 
-After that, the software will generate the `chat-completion`-object, and finally call
-the API and get the response as displayed at the top of the page. User messages
-containing files (audio/video/otherwise) will automatically be base64-encoded if
-their path is given and consequently transformed into the correct user message
-content part objects, assuming that the extension is also given to correctly
-recognize the mime-type.
+After that, `oai:create-chat-completion` will generate the
+`openai-sdk/chat-completion:chat-completion`-object, and finally call the API and get
+the response-object `openai-sdk/response:chat-completion` as displayed at the top of
+the page. User messages containing files (audio/video/otherwise) will - if their path
+and extension is given - be correctly put into their objects, respectively, and have
+their contents base64 encoded.
 
-However, you are still free to generate messages threads yourself.
+However, you are still free to generate messages threads yourself. See below for an example.
 
-## Different message types
+# Examples
+
+## Simple messages
+```lisp
+;; single user message
+(oai:create-chat-completion "hello world")
+
+;; another single user message
+(oai:create-chat-completion (list "hello world"))
+
+;; Multi message type messages
+(oai:create-chat-completion
+    (list (make-system-message "some msg")
+          (make-developer-message "some other msg")
+          (make-user-message "Hello world!"))
+```
+### All message types
 ```lisp
 (oai:make-function-message (name &rest args &key content))
 (oai:make-developer-message (content &rest args &key name))
@@ -93,6 +109,34 @@ However, you are still free to generate messages threads yourself.
 (oai:make-assistant-message (&rest args &key audio content function-call name refusal
                                             tool-calls))
 ```
+
+## Legacy function calling
+
+```lisp
+(oai:make-openai "<api-key>")
+
+(defvar *json-schema* (jzon:parse "<json-schema-string>")) ; Some json schema you want to fill.
+(defvar *function* (oai:make-function "function_name"
+                                      :description "function description"
+                                      :parameters *json-schema*))
+
+(defvar *call* (oai:make-function-call (oai:name *function*)))
+(defvar *sys-msg* "some system message")
+(defvar *usr-msg* "some user message")
+(defvar *response-format* (oai:make-response-format "json_object"))
+
+;; Generate response
+(defvar *response* (oai:create-chat-completion
+                    (oai:make-chat-completion `((:system ,*sys-msg*)
+                                                (:user ,*usr-msg*))
+                                              :response-format *response-format*
+                                              :functions (list *function*)
+                                              :function-call *call*)))
+;; Parse response function call
+(defvar *response-function-hash-table*
+  (com.inuoe.jzon:parse (oai:arguments (oai:function-call (oai:message (aref (oai:choices *response*) 0))))))
+```
+
 
 # Install
 ## qlot
@@ -118,19 +162,7 @@ I want request creation as intuitive and painless as possible, so
 multiple input types for request creation will be supported.
 
 For example, when using the Chat Completion API
-```lisp
-;; single user message
-(oai:create-chat-completion *openai* "hello world")
 
-;; another single user message
-(oai:create-chat-completion *openai* (list "hello world"))
-
-;; Multi message type messages
-(oai:create-chat-completion *openai*
-    (list (make-system-message "some msg")
-          (make-developer-message "some other msg")
-          (make-user-message "Hello world!"))
-```
 
 Something like this should also be the case for any of the structured outputs, such
 as function calling. The idea is that regular data types such as strings and plists

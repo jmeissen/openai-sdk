@@ -25,6 +25,7 @@
      id
      image-url
      input-audio
+     message
      name
      refusal
      role

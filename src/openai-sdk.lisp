@@ -15,6 +15,7 @@
                 #:id
                 #:image-url
                 #:input-audio
+                #:message
                 #:name
                 #:refusal
                 #:role
@@ -116,6 +117,7 @@
    #:*default-base-url*
    #:*default-headers*
    #:*default-model*
+   #:*openai*
    #:api-key
    #:base-url
    #:connect-timeout

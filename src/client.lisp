@@ -5,6 +5,7 @@
   (:export #:*default-base-url*
            #:*default-headers*
            #:*default-model*
+           #:*openai*
            #:api-key
            #:base-url
            #:connect-timeout
@@ -22,6 +23,8 @@
 (defvar *default-base-url* "https://api.openai.com/v1/")
 (defvar *default-model* "gpt-4o")
 (defvar *default-headers* '(("Content-Type" . "application/json")))
+(defvar *openai* nil
+  "Default OpenAI instance that will be referenced in other parts of the code.")
 
 (defclass openai ()
   ((base-url :initarg :base-url
@@ -53,4 +56,4 @@
 
 (defun make-openai (api-key &rest args &key base-url connect-timeout default-headers default-model max-retries organization-id project-id read-timeout)
   (declare (ignore base-url connect-timeout default-headers default-model max-retries organization-id project-id read-timeout))
-  (apply #'make-instance 'openai :api-key api-key args))
+  (setf *openai* (apply #'make-instance 'openai :api-key api-key args)))

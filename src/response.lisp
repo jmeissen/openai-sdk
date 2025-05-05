@@ -1,6 +1,6 @@
 (in-package #:cl-user)
 
-(defpackage openai-sdk/response
+(uiop:define-package openai-sdk/response
   (:use #:cl
         #:openai-sdk/core
         #:openai-sdk/util)
@@ -41,7 +41,6 @@
            #:make-tool-call
            #:make-url-citation
            #:make-usage
-           #:message
            #:model
            #:name
            #:object
@@ -249,7 +248,7 @@
 (defun make-tool-call (&key id function type)
   (make-instance 'tool-call :id id :function (objectify 'make-function-call function) :type type))
 
-(defclass message ()
+(defclass response-message ()
   ((content
     :accessor content
     :initarg :content
@@ -281,7 +280,7 @@
 
 (defun make-message (&key content refusal role annotations audio function-call tool-calls)
   (make-instance
-   'message
+   'response-message
    :content content
    :refusal refusal
    :role role
@@ -306,7 +305,7 @@
    (message
     :accessor message
     :initarg :message
-    :type message)))
+    :type response-message)))
 
 (defun make-choice (&key finish-reason index logprobs message)
   (make-instance 'choice :finish-reason finish-reason
