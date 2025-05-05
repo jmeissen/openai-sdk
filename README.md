@@ -53,6 +53,36 @@ adhering to the OpenAI SDK.
 (create-chat-completion (openai chat-completion))
 ```
 
+Currently supports the following `chat-completion` specializations:
+- `list` (containing other plists, of which the keywords act like references to
+  `string`, `pathname` or encoded `string` URIs including their schemas;
+- `string`
+- `chat-completion`
+
+### List
+
+```lisp
+CL-USER> (oai:create-chat-completion *openai* `((:system "Find the required parameters according to the user specification sourcing from the provided document.")
+                                                (:user ("Here's the document and an image, do what you must!"
+                                                        #p"test-file.pdf"
+                                                        "https://something.com/whatever.jpg"))))
+```
+
+Will transform the chat-completion into the following:
+```lisp
+(#<OPENAI-SDK/CHAT-COMPLETION:SYSTEM-MESSAGE>
+ #<OPENAI-SDK/CHAT-COMPLETION:USER-MESSAGE>)
+```
+
+After that, the software will generate the `chat-completion`-object, and finally call
+the API and get the response as displayed at the top of the page. User messages
+containing files (audio/video/otherwise) will automatically be base64-encoded if
+their path is given and consequently transformed into the correct user message
+content part objects, assuming that the extension is also given to correctly
+recognize the mime-type.
+
+However, you are still free to generate messages threads yourself.
+
 ## Different message types
 ```lisp
 (oai:make-function-message (name &rest args &key content))
@@ -138,7 +168,7 @@ convenience wrappers, in addition to a easy as possible wrapper of the OpenAI AP
 
 ## Convenience
 
-- [ ] Message threads
+- [x] Message threads
 - [ ] Token usage stats
 
 ## Implement

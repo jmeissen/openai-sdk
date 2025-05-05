@@ -4,11 +4,11 @@
   :description "OpenAI SDK API"
   :author "Jeffrey Meissen <jeffrey@meissen.email>"
   :license  "MIT"
-  :version "0.2.1"
+  :version "0.3.0"
   :serial t
   :components ((:module "src"
-                :components ((:file "util")
-                             (:file "core")
+                :components ((:file "core")
+                             (:file "util")
                              (:file "client")
                              (:file "response")
                              (:file "chat-completion")
@@ -19,4 +19,5 @@
                :com.inuoe.jzon
                :symbol-munger
                :cl-ppcre
-               :log4cl))
+               :log4cl
+               :qbase64))

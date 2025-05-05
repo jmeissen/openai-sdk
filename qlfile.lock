@@ -9,7 +9,7 @@
 ("40ants-log4sly" .
  (:class qlot/source/ultralisp:source-ultralisp
   :initargs (:%version :latest)
-  :version "ultralisp-20250402012000"))
+  :version "ultralisp-20250504225000"))
 ("jzon" .
  (:class qlot/source/ql:source-ql
   :initargs (:%version :latest)
@@ -19,6 +19,10 @@
   :initargs (:%version :latest)
   :version "ql-2024-10-12"))
 ("symbol-munger" .
+ (:class qlot/source/ql:source-ql
+  :initargs (:%version :latest)
+  :version "ql-2022-02-20"))
+("qbase64" .
  (:class qlot/source/ql:source-ql
   :initargs (:%version :latest)
   :version "ql-2022-02-20"))

@@ -3,3 +3,4 @@ ultralisp 40ants-log4sly
 ql jzon
 ql alexandria
 ql symbol-munger
+ql qbase64

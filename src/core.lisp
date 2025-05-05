@@ -16,6 +16,7 @@
 
 (dg (arguments
      audio
+     b64encode
      content
      data
      function
@@ -32,19 +33,23 @@
      text
      url))
 
-(defclass openai-request () ())
+(defclass openai-request () ()
+  (:documentation "Inherit from OPENAI-REQUEST if the child will be serialized to
+ json with `jzon'. A `jzon:coerced-fields'-method is specialized on this class to
+ ensure slot-names are serialized to snake_case (since OpenAI wants this)."))
 (export 'openai-request)
 
 (defmethod jzon:coerced-fields ((element openai-request))
   (macrolet ((%coerced-fields-slots (element)
                `(let ((class (class-of ,element)))
                   (c2mop:ensure-finalized class)
-                  (mapcar (lambda (s)
-                            (let ((slot-name (c2mop:slot-definition-name s)))
-                              ;; underscore string conversion for object keys
-                              `(,(symbol-munger:lisp->underscores slot-name)
-                                ,(slot-value ,element slot-name)
-                                ,(c2mop:slot-definition-type s))))
-                          (remove-if-not (lambda (s) (slot-boundp ,element (c2mop:slot-definition-name s)))
-                                         (c2mop:class-slots class))))))
+                  (mapcar
+                   (lambda (s) (let ((slot-name (c2mop:slot-definition-name s)))
+                                 ;; Serialize slot-names as snake_case:
+                                 `(,(symbol-munger:lisp->underscores slot-name)
+                                   ,(slot-value ,element slot-name)
+                                   ,(c2mop:slot-definition-type s))))
+                   (remove-if-not (lambda (s) (slot-boundp ,element
+                                                           (c2mop:slot-definition-name s)))
+                                  (c2mop:class-slots class))))))
     (%coerced-fields-slots element)))

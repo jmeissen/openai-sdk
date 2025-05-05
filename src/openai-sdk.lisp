@@ -1,6 +1,6 @@
 (in-package #:cl-user)
 
-(defpackage openai-sdk
+(uiop:define-package openai-sdk
   (:use #:openai-sdk/util
         #:openai-sdk/client)
   (:nicknames #:oai)
@@ -23,12 +23,36 @@
                 #:type
                 #:url)
   (:import-from #:openai-sdk/chat-completion
+                #:json-schema
+                #:description
+                #:make-approximate
                 #:make-assistant-message
+                #:make-assistant-message-audio
+                #:make-chat-completion
+                #:make-chat-completion-audio
+                #:make-chat-completion-function-call
                 #:make-developer-message
+                #:make-file-data-content-part
+                #:make-file-id-content-part
+                #:make-function
+                #:make-function-call
                 #:make-function-message
+                #:make-json-schema
+                #:make-message-from-keyword
+                #:make-prediction
+                #:make-prediction-content-part
+                #:make-response-format
+                #:make-stream-options
                 #:make-system-message
+                #:make-text-content-part
+                #:make-tool-call
+                #:make-tool-function
                 #:make-tool-message
-                #:make-user-message)
+                #:make-user-location
+                #:make-user-message
+                #:make-web-search-options
+                #:parameters
+                #:voice)
   (:import-from #:openai-sdk/request
                 #:create-chat-completion)
   (:import-from #:openai-sdk/response
@@ -67,54 +91,6 @@
                 #:url
                 #:url-citation
                 #:usage)
-
-  (:export #:*default-base-url*
-           #:*default-headers*
-           #:*default-model*
-           #:api-key
-           #:arguments
-           #:audio
-           #:base-url
-           #:connect-timeout
-           #:content
-           #:choices
-           #:choice
-           #:create-chat-completion
-           #:default-headers
-           #:default-model
-           #:description
-           #:format
-           #:function
-           #:function-call
-           #:id
-           #:json-schema
-           #:make-assistant-message
-           #:make-assistant-message-tool-call
-           #:make-chat-completion-audio
-           #:make-developer-message
-           #:make-function
-           #:make-function-message
-           #:make-json-schema
-           #:make-metadata
-           #:make-openai
-           #:make-response-format
-           #:make-system-message
-           #:make-tool-message
-           #:make-user-message
-           #:message
-           #:max-retries
-           #:name
-           #:openai
-           #:organization-id
-           #:parameters
-           #:project-id
-           #:read-timeout
-           #:refusal
-           #:role
-           #:text
-           #:tool-calls
-           #:type
-           #:voice)
   (:export
 
    ;; core
@@ -151,6 +127,41 @@
    #:organization-id
    #:project-id
    #:read-timeout
+
+   ;; request
+   #:create-chat-completion
+
+   ;; chat completion
+   #:json-schema
+   #:make-assistant-message-tool-call
+   #:make-approximate
+   #:make-assistant-message
+   #:make-assistant-message-audio
+   #:make-chat-completion
+   #:make-chat-completion-audio
+   #:make-chat-completion-function-call
+   #:make-developer-message
+   #:make-file-data-content-part
+   #:make-file-id-content-part
+   #:make-function
+   #:make-function-call
+   #:make-function-message
+   #:make-json-schema
+   #:make-message-from-keyword
+   #:make-prediction
+   #:make-prediction-content-part
+   #:make-response-format
+   #:make-stream-options
+   #:make-system-message
+   #:make-text-content-part
+   #:make-tool-call
+   #:make-tool-function
+   #:make-tool-message
+   #:make-user-location
+   #:make-user-message
+   #:make-web-search-options
+   #:parameters
+   #:voice
 
    ;; response
    #:accepted-prediction-tokens
