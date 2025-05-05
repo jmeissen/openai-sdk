@@ -57,16 +57,17 @@
   chat-completion)
 
 (defmethod create-chat-completion ((openai openai) (chat-completion string))
-  (oai:make-chat-completion (default-model openai) (list (openai-sdk/chat-completion:make-user-message chat-completion))))
+  (openai-sdk/response:make-chat-completion (default-model openai) (list (openai-sdk/chat-completion:make-user-message chat-completion))))
 
 (defmethod create-chat-completion ((openai openai) (chat-completion list))
   (flet ((generate-message (msg)
-           (cond ((and (consp msg) (keywordp (car msg)) (stringp (cadr msg)))
-                  (apply #'oai:make-message-from-keyword msg))
+           (cond ((and (consp msg) (keywordp (car msg)) (or (stringp (cadr msg)) (consp (cadr msg))))
+                  (apply #'openai-sdk/chat-completion:make-message-from-keyword msg))
                  ((stringp msg)
-                  (oai:make-user-message msg))
-                 ((typep msg 'oai:message)
+                  (openai-sdk/chat-completion:make-user-message msg))
+                 ((typep msg 'openai-sdk/response:message)
                   msg))))
-    (oai:make-chat-completion (default-model openai)
-                              (loop for message in chat-completion
-                                    collect (generate-message message)))))
+    (openai-sdk/chat-completion:make-chat-completion
+     (default-model openai)
+     (loop for message in chat-completion
+           collect (generate-message message)))))

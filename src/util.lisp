@@ -19,6 +19,8 @@
 
 
 (defmethod b64encode ((path pathname))
+  (unless (uiop:file-exists-p path)
+    (error "Path does not exist."))
   (let ((element-type '(unsigned-byte 8)))
     (with-output-to-string (sink)
       (with-open-file (source path :element-type element-type)
