@@ -121,7 +121,7 @@ However, you are still free to generate messages threads yourself. See below for
     "What is the weather like in Paris today?"
     :functions (list
                 (oai:make-function
-                 "get_weather"
+                 "get-weather"
                  :description "Get current temperature for a given location"
                  :parameters (let ((parameters (make-hash-table :test #'equal))
                                    (properties (make-hash-table :test #'equal))
@@ -134,7 +134,7 @@ However, you are still free to generate messages threads yourself. See below for
                                (setf (gethash "required" parameters) '("location"))
                                (setf (gethash "additionalProperties" parameters) nil)
                                parameters)))
-    :function-call (oai:make-function-call "get_weather"))))
+    :function-call (oai:make-function-call "get-weather"))))
 
 
 (defvar *function-call-response-arguments*             ;= "{\"location\":\"Paris, France\"}"
@@ -151,7 +151,7 @@ However, you are still free to generate messages threads yourself. See below for
    (oai:make-chat-completion
     "What is the weather like in Paris today?"
     :tools (list (oai:make-tool
-                  (oai:make-function "get_weather"
+                  (oai:make-function "get-weather"
                                      :description "Get current temperature for a given location"
                                      :parameters (let ((parameters (make-hash-table :test #'equal))
                                                        (properties (make-hash-table :test #'equal))
@@ -165,7 +165,7 @@ However, you are still free to generate messages threads yourself. See below for
                                                    (setf (gethash "additionalProperties" parameters) nil)
                                                    parameters)
                                      :strict t)))
-    :tool-choice (oai:make-tool-choice "get_weather"))))
+    :tool-choice (oai:make-tool-choice "get-weather"))))
 
 (defvar *tool-call-response-arguments*  ;= "{\"location\":\"Paris, France\"}"
   (oai:arguments
