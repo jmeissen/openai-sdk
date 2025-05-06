@@ -4,7 +4,7 @@
   :description "OpenAI SDK API"
   :author "Jeffrey Meissen <jeffrey@meissen.email>"
   :license  "MIT"
-  :version "0.4.0"
+  :version "0.5.0"
   :serial t
   :components ((:module "src"
                 :components ((:file "core")

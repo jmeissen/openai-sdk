@@ -115,26 +115,67 @@ However, you are still free to generate messages threads yourself. See below for
 ```lisp
 (oai:make-openai "<api-key>")
 
-(defvar *json-schema* (jzon:parse "<json-schema-string>")) ; Some json schema you want to fill.
-(defvar *function* (oai:make-function "function_name"
-                                      :description "function description"
-                                      :parameters *json-schema*))
+(defvar *function-call*
+  (oai:create-chat-completion
+   (oai:make-chat-completion
+    "What is the weather like in Paris today?"
+    :functions (list
+                (oai:make-function
+                 "get_weather"
+                 :description "Get current temperature for a given location"
+                 :parameters (let ((parameters (make-hash-table :test #'equal))
+                                   (properties (make-hash-table :test #'equal))
+                                   (location (make-hash-table :test #'equal)))
+                               (setf (gethash "type" parameters) "object")
+                               (setf (gethash "type" location) "string")
+                               (setf (gethash "description" location) "City and country e.g. Bogotá, Colombia")
+                               (setf (gethash "location" properties) location)
+                               (setf (gethash "properties" parameters) properties)
+                               (setf (gethash "required" parameters) '("location"))
+                               (setf (gethash "additionalProperties" parameters) nil)
+                               parameters)
+                 ))
+    :function-call (oai:make-function-call "get_weather"))))
 
-(defvar *call* (oai:make-function-call (oai:name *function*)))
-(defvar *sys-msg* "some system message")
-(defvar *usr-msg* "some user message")
-(defvar *response-format* (oai:make-response-format "json_object"))
 
-;; Generate response
-(defvar *response* (oai:create-chat-completion
-                    (oai:make-chat-completion `((:system ,*sys-msg*)
-                                                (:user ,*usr-msg*))
-                                              :response-format *response-format*
-                                              :functions (list *function*)
-                                              :function-call *call*)))
-;; Parse response function call
-(defvar *response-function-hash-table*
-  (com.inuoe.jzon:parse (oai:arguments (oai:function-call (oai:message (aref (oai:choices *response*) 0))))))
+(defvar *function-call-response-arguments*             ;= "{\"location\":\"Paris, France\"}"
+  (oai:arguments
+   (oai:function-call
+    (oai:message
+     (aref (oai:choices *response*) 0)))))
+```
+
+## Tool calling
+```lisp
+(defvar *tool-call-response*
+  (oai:create-chat-completion
+   (oai:make-chat-completion
+    "What is the weather like in Paris today?"
+    :tools (list (oai:make-tool
+                  (oai:make-function "get_weather"
+                                     :description "Get current temperature for a given location"
+                                     :parameters (let ((parameters (make-hash-table :test #'equal))
+                                                       (properties (make-hash-table :test #'equal))
+                                                       (location (make-hash-table :test #'equal)))
+                                                   (setf (gethash "type" parameters) "object")
+                                                   (setf (gethash "type" location) "string")
+                                                   (setf (gethash "description" location) "City and country e.g. Bogotá, Colombia")
+                                                   (setf (gethash "location" properties) location)
+                                                   (setf (gethash "properties" parameters) properties)
+                                                   (setf (gethash "required" parameters) '("location"))
+                                                   (setf (gethash "additionalProperties" parameters) nil)
+                                                   parameters)
+                                     :strict t
+                                     )))
+    :tool-choice (oai:make-tool-choice "get_weather"))))
+
+(defvar *tool-call-response-arguments*  ;= "{\"location\":\"Paris, France\"}"
+  (oai:arguments
+   (oai:function
+    (aref (oai:tool-calls
+           (oai:message
+            (aref (oai:choices *tool-call-response*) 0)))
+          0))))
 ```
 
 

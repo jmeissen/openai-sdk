@@ -69,8 +69,9 @@
            #:make-stream-options
            #:make-system-message
            #:make-text-content-part
+           #:make-tool
            #:make-tool-call
-           #:make-tool-function
+           #:make-tool-choice
            #:make-tool-message
            #:make-user-location
            #:make-user-message
@@ -124,7 +125,6 @@
            #:tool-choice
            #:tool-choice-p
            #:tool-choice-part
-           #:tool-function
            #:tool-message
            #:tool-message-content
            #:tools
@@ -472,17 +472,34 @@ echo, fable, nova, onyx, sage, and shimmer."))
     :accessor name
     :initarg :name
     :type string
-    :initform (error "required"))
+    :initform (error "required")
+    :documentation "The name of the function to be called. Must be a-z, A-Z, 0-9,
+ or contain underscores and dashes, with a maximum length of 64.")
    (description
     :accessor description
     :initarg :description
-    :type string)
+    :type string
+    :documentation "A description of what the function does, used by the
+ model to choose when and how to call the function.")
    (parameters
     :accessor parameters
-    :initarg :parameters)))
+    :initarg :parameters
+    :documentation "The parameters the functions accepts, described as a
+ JSON Schema object. See the guide for examples, and the JSON Schema reference for
+ documentation about the format. Omitting parameters defines a function with an empty
+ parameter list.")
+   (strict
+    :accessor strict
+    :initarg :strict
+    :type boolean
+    :documentation "Whether to enable strict schema adherence when generating the
+ function call. If set to true, the model will follow the exact schema defined in the
+ parameters field. Only a subset of JSON Schema is supported when strict is true.
+ Learn more about Structured Outputs in the function calling guide. Note: Do not set
+ for legacy functions.")))
 
-(defun make-function (name &rest args &key description parameters) ; FIXME: paramaters json schema object serialization
-  (declare (ignore description parameters))
+(defun make-function (name &rest args &key description parameters strict) ; FIXME: paramaters json schema object serialization
+  (declare (ignore description parameters strict))
   (apply #'make-instance 'function :name name args))
 
 (defun functions-p (els)
@@ -676,49 +693,38 @@ echo, fable, nova, onyx, sage, and shimmer."))
    (function
     :accessor function
     :initarg :function
-    :type chat-completion-function-call
-    :documentation "")))
+    :type chat-completion-function-call)))
 
 (defun tool-choice-p (el)
   (or (and (stringp el)
-           (string= el "none")
-           (string= el "auto"))
+           (or (string= el "none")
+               (string= el "auto")
+               (string= el "required")))
       (typep el 'tool-choice-part)))
 
 (deftype tool-choice ()
   `(satisfies tool-choice-p))
 
+(defun make-tool-choice (call)
+  (if (typep call 'tool-choice)
+      call
+      (make-instance 'tool-choice-part
+                     :function (make-chat-completion-function-call call))))
+
 (defun make-stream-options (&optional include-usage)
   (make-instance 'stream-options :include-usage include-usage))
-
-(defclass tool-function (function)
-  ((name :documentation "The name of the function to be called. Must be a-z, A-Z, 0-9,
- or contain underscores and dashes, with a maximum length of 64.")
-   (description :documentation "A description of what the function does, used by the
- model to choose when and how to call the function.")
-   (parameters :documentation "The parameters the functions accepts, described as a
- JSON Schema object. See the guide for examples, and the JSON Schema reference for
- documentation about the format. Omitting parameters defines a function with an empty
- parameter list.")
-   (strict
-    :accessor strict
-    :initarg :strict
-    :type boolean
-    :documentation "Whether to enable strict schema adherence when generating the
- function call. If set to true, the model will follow the exact schema defined in the
- parameters field. Only a subset of JSON Schema is supported when strict is true.
- Learn more about Structured Outputs in the function calling guide.")))
-
-(defun make-tool-function (name &rest args &key description parameters strict)
-  (declare (ignore description parameters strict))
-  (apply #'make-instance 'tool-function :name name args))
 
 (defclass tool (content-part)
   ((type :initform "function")
    (function
     :accessor function
     :initarg :function
-    :type tool-function)))
+    :type function)))
+
+(defun make-tool (function)
+  (make-instance 'tool :function (if (typep function 'function)
+                                     function
+                                     (apply #'make-instance 'function function))))
 
 (defun tools-p (tools)
   (and (consp tools)
@@ -985,4 +991,7 @@ echo, fable, nova, onyx, sage, and shimmer."))
                    prediction presence-penalty reasoning-effort response-format seed service-list
                    stop store stream stream-options temperature tool-choice tools top-logprobs
                    top-p user web-search-options))
-  (apply #'make-instance 'chat-completion :messages (mapcar #'parse-message messages) args))
+  (apply #'make-instance 'chat-completion :messages (mapcar #'parse-message (etypecase messages
+                                                                              (cons messages)
+                                                                              (string (list messages))))
+         args))

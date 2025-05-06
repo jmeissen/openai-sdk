@@ -47,7 +47,8 @@
                 #:make-system-message
                 #:make-text-content-part
                 #:make-tool-call
-                #:make-tool-function
+                #:make-tool-choice
+                #:make-tool
                 #:make-tool-message
                 #:make-user-location
                 #:make-user-message
@@ -156,8 +157,9 @@
    #:make-stream-options
    #:make-system-message
    #:make-text-content-part
+   #:make-tool
    #:make-tool-call
-   #:make-tool-function
+   #:make-tool-choice
    #:make-tool-message
    #:make-user-location
    #:make-user-message
