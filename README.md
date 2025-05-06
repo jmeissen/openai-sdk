@@ -133,8 +133,7 @@ However, you are still free to generate messages threads yourself. See below for
                                (setf (gethash "properties" parameters) properties)
                                (setf (gethash "required" parameters) '("location"))
                                (setf (gethash "additionalProperties" parameters) nil)
-                               parameters)
-                 ))
+                               parameters)))
     :function-call (oai:make-function-call "get_weather"))))
 
 
@@ -165,8 +164,7 @@ However, you are still free to generate messages threads yourself. See below for
                                                    (setf (gethash "required" parameters) '("location"))
                                                    (setf (gethash "additionalProperties" parameters) nil)
                                                    parameters)
-                                     :strict t
-                                     )))
+                                     :strict t)))
     :tool-choice (oai:make-tool-choice "get_weather"))))
 
 (defvar *tool-call-response-arguments*  ;= "{\"location\":\"Paris, France\"}"
