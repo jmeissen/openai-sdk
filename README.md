@@ -176,6 +176,74 @@ However, you are still free to generate messages threads yourself. See below for
           0))))
 ```
 
+## Structured outputs
+
+```lisp
+(defvar *structured-output*
+  (oai:create-chat-completion
+   (oai:make-chat-completion
+    `((:system "You are a helpful math tutor. Guide the user through the solution step by step.")
+      (:user "how can I solve 8x + 7 = -23"))
+    :response-format (oai:make-response-format
+                      "json_schema"
+                      :json-schema (oai:make-json-schema
+                                    "math-reasoning"
+                                    :schema (flet ((h (&rest args) (alexandria:plist-hash-table args :test #'equalp)))
+                                              (h "type" "object"
+                                                 "properties" (h "steps" (h "type" "array"
+                                                                            "items" (h "type" "object"
+                                                                                       "properties" (h "explanation" (h "type" "string")
+                                                                                                       "output" (h "type" "string"))
+                                                                                       "required" '("explanation" "output")
+                                                                                       "additionalProperties" nil))
+                                                                 "final_answer" (h "type" "string"))
+                                                 "required" '("steps" "final_answer")
+                                                 "additionalProperties" nil))
+                                    :strict t)))))
+
+(defvar *structured-output-response-content*
+  (oai:content
+   (oai:message
+    (aref
+     (oai:choices *structured-output*) 0))))
+```
+
+`*structured-output-response-content*` will contain something like the following, but unformatted:
+```json
+{
+  "steps": [
+    {
+      "explanation": "We start with the equation 8x + 7 = -23. Our goal is to isolate the variable x. We first need to eliminate the constant term on the left-hand side, which is 7.",
+      "output": "8x + 7 = -23"
+    },
+    {
+      "explanation": "To eliminate the 7, subtract 7 from both sides of the equation. This will remove the 7 from the left side.",
+      "output": "8x + 7 - 7 = -23 - 7"
+    },
+    {
+      "explanation": "Simplifying both sides, we are left with 8x on the left, and -30 on the right.",
+      "output": "8x = -30"
+    },
+    {
+      "explanation": "Now, divide both sides of the equation by 8 to solve for x. This will isolate the x.",
+      "output": "8x / 8 = -30 / 8"
+    },
+    {
+      "explanation": "Simplifying the right side, we perform the division -30 divided by 8. It results in a fraction or a decimal. Here, as a fraction it is:",
+      "output": "x = -30/8"
+    },
+    {
+      "explanation": "Simplify the fraction -30/8 by finding the greatest common divisor of 30 and 8, which is 2, and divide both numerator and denominator by 2.",
+      "output": "x = -15/4"
+    },
+    {
+      "explanation": "Alternatively, convert -15/4 to a decimal by dividing 15 by 4 to get an approximate decimal value:",
+      "output": "x = -3.75"
+    }
+  ],
+  "final_answer": "x = -15/4 or x = -3.75"
+}
+```
 
 # Install
 ## qlot

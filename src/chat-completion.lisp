@@ -671,10 +671,9 @@ echo, fable, nova, onyx, sage, and shimmer."))
     :documentation "Structured Outputs configuration options, including a JSON
  Schema. Required when type is 'json_schema'.")))
 
-(defun make-response-format (type &optional json-schema)
-  (if json-schema
-      (make-instance 'response-format :type type :json-schema json-schema)
-      (make-instance 'response-format :type type)))
+(defun make-response-format (type &rest args &key json-schema)
+  (declare (ignore json-schema))
+  (apply #'make-instance 'response-format :type type args))
 
 (defclass stream-options (openai-request)
   ((include-usage
