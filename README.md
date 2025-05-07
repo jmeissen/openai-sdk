@@ -2,9 +2,8 @@
 Common Lisp [OpenAI SDK](https://platform.openai.com/docs/api-reference/introduction)
 implementation.
 
-Disclaimer: this is a **work in progress**! Stuff is definitely missing, even the
-`create-chat-completion` is largely untested (think function calling, etc.).
-This project follows semantic versioning.
+Disclaimer: this is a **work in progress**!
+This project will follow semantic versioning from version 1.0.0.
 
 # Use
 ```lisp
@@ -151,20 +150,21 @@ However, you are still free to generate messages threads yourself. See below for
    (oai:make-chat-completion
     "What is the weather like in Paris today?"
     :tools (list (oai:make-tool
-                  (oai:make-function "get-weather"
-                                     :description "Get current temperature for a given location"
-                                     :parameters (let ((parameters (make-hash-table :test #'equal))
-                                                       (properties (make-hash-table :test #'equal))
-                                                       (location (make-hash-table :test #'equal)))
-                                                   (setf (gethash "type" parameters) "object")
-                                                   (setf (gethash "type" location) "string")
-                                                   (setf (gethash "description" location) "City and country e.g. Bogotá, Colombia")
-                                                   (setf (gethash "location" properties) location)
-                                                   (setf (gethash "properties" parameters) properties)
-                                                   (setf (gethash "required" parameters) '("location"))
-                                                   (setf (gethash "additionalProperties" parameters) nil)
-                                                   parameters)
-                                     :strict t)))
+                  (oai:make-function
+                   "get-weather"
+                   :description "Get current temperature for a given location"
+                   :parameters (let ((parameters (make-hash-table :test #'equal))
+                                     (properties (make-hash-table :test #'equal))
+                                     (location (make-hash-table :test #'equal)))
+                                 (setf (gethash "type" parameters) "object")
+                                 (setf (gethash "type" location) "string")
+                                 (setf (gethash "description" location) "City and country e.g. Bogotá, Colombia")
+                                 (setf (gethash "location" properties) location)
+                                 (setf (gethash "properties" parameters) properties)
+                                 (setf (gethash "required" parameters) '("location"))
+                                 (setf (gethash "additionalProperties" parameters) nil)
+                                 parameters)
+                   :strict t)))
     :tool-choice (oai:make-tool-choice "get-weather"))))
 
 (defvar *tool-call-response-arguments*  ;= "{\"location\":\"Paris, France\"}"
