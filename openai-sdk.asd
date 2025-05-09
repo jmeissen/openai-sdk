@@ -9,6 +9,7 @@
   :components ((:module "src"
                 :components ((:file "core")
                              (:file "util")
+                             (:file "json-schema")
                              (:file "client")
                              (:file "response")
                              (:file "chat-completion")
