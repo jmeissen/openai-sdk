@@ -34,7 +34,7 @@
 (def-list-type float)
 (def-list-type boolean)
 
-(defparameter *default-json-schema-types*
+(defparameter *default-types*
   '((string . "string")
     (integer . "int")
     (float . "float")
