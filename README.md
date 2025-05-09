@@ -276,6 +276,8 @@ I know some of these things are easily avoided, I'll be fixing it in a week or s
 
 ### CLOS Structured Output Example
 
+Let's take the example from the structured outputs example from above.
+
 ```lisp
 (defclass math-step (oai/js:structured-output-model) ; Because a `step'-macro is already defined, we use another symbol in this example
   ((explanation :type string)
