@@ -20,4 +20,5 @@
                :symbol-munger
                :cl-ppcre
                :log4cl
-               :qbase64))
+               :qbase64
+               :introspect-environment))

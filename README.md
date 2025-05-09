@@ -245,6 +245,68 @@ However, you are still free to generate messages threads yourself. See below for
 }
 ```
 
+## JSON Schemas
+As you surely know, JSON schemas are applied in OpenAI's function-/tool calling and
+structured outputs. However, writing JSON schemas is a pain in the ass. So, instead
+of writing out the json schemas, it is my goal to provide a convenient way to go from
+`class` through OpenAI to the wanted `object` instantiated.
+
+Comfort is limited, however. Most importantly because of the way class slot types
+function. Specifically, slot `:type`s are only evaluated compile-time to denote
+return values of readers and to throw warnings when the wrong type is used in the
+`:initform`, and what to do on runtime slot allocation with incorrect data types is
+undefined by the spec. In other words, runtime datatype analysis to correctly convert
+to JSON schema is a pain in the ass. To limit yakshaving, at the time of writing, I
+impose four limitations on objects in order to be able to be used. This is subject
+to change, as I'm sure I can just overwrite the jzon writer to do what I want.
+
+### Limitations
+1. An object must be instantiated in order for the
+   `com.inuoe.jzon:coerced-fields`-method to work. Therefore, the `:initform`-option
+   cannot contain something like `(error "slot cannot be empty")`
+2. Each object supplied (including its subclasses) MUST contain as their super class
+   `oai:structured-output-model`.
+3. Slot types MUST either be:
+   1. standard types understood by JSON Schema (`number` is not permitted)
+   2. A class symbol
+   3. A `<class>-oai-list` type as defined by the `oai:def-list-type`-macro
+4. The `response-format`-object must have the `:strict`-option `t`.
+
+I know some of these things are easily avoided, I'll be fixing it in a week or so (16 may).
+
+### CLOS Structured Output Example
+
+```lisp
+(defclass math-step (oai/js:structured-output-model) ; Because a `step'-macro is already defined, we use another symbol in this example
+  ((explanation :type string)
+   (output :type string)))
+
+(oai/js:def-list-type math-step)        ; <- See limitation 3
+
+(defclass math-reasoning (oai/js:structured-output-model) ; <- see limitation 2
+  ((steps :type math-step-oai-list)          ; `def-list-type'-macro defines the type <CLASS>-OAI-ALIST, see limitation 3
+   (final-answer :type string)))
+
+(defvar *structured-output-with-clos*
+  (oai:create-chat-completion
+   (oai:make-chat-completion
+    `((:system "You are a helpful math tutor. Guide the user through the solution step by step.")
+      (:user "how can I solve 8x + 7 = -23"))
+    :response-format (oai:make-response-format
+                      "json_schema"
+                      :json-schema (oai:make-json-schema "math-reasoning"
+                                                         :schema (make-instance 'math-reasoning)
+                                                         :strict t ; <- See limitation 4
+                                                         )))))
+(defvar *structured-output-response-content-with-clos*
+  (oai:content
+   (oai:message
+    (aref
+     (oai:choices *structured-output-with-clos*) 0))))
+```
+
+As you can see, you have to manually map it back at the moment.
+
 # Install
 ## qlot
 ```sh
@@ -265,8 +327,8 @@ git clone https://github.com/jmeissen/openai-sdk ~/.quicklisp/local-projects/
 
 # Future goal
 
-I want request creation as intuitive and painless as possible, so
-multiple input types for request creation will be supported.
+I want request creation as intuitive and painless as possible, so multiple input
+types for request creation will be supported.
 
 For example, when using the Chat Completion API
 

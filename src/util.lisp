@@ -34,7 +34,7 @@
     (loop for el in plist
           for i from 0 to (length plist)
           collect (if (= 0 (mod i 2))
-                      (symbol-munger:english->keyword el)
+                      (symbol-munger:underscores->keyword el)
                       el))))
 
 (defun merge-plist (default override)

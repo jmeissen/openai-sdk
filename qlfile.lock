@@ -26,3 +26,7 @@
  (:class qlot/source/ql:source-ql
   :initargs (:%version :latest)
   :version "ql-2022-02-20"))
+("introspect-environment" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "Bike/introspect-environment" :ref nil :branch nil :tag nil)
+  :version "github-69a50ac84b4c23447521dfab008cc20e4bfbee82"))
