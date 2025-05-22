@@ -111,6 +111,8 @@ However, you are still free to generate messages threads yourself. See below for
 
 ## Legacy function calling
 
+Note: see the last example for CLOS -> JSON Schema -> CLOS.
+
 ```lisp
 (oai:make-openai "<api-key>")
 
@@ -267,7 +269,7 @@ to change, as I'm sure I can just overwrite the jzon writer to do what I want.
    3. list type as defined by the `oai/json:def-schema-list-type`-macro making
       available a `<class>-oai-list`-type
 2. The `response-format`-object must have the `:strict`-option `t`, because I haven't
-   adapted the schema creation yet to support the non-strict variant.
+   adapted the schema creation yet to support the non-strict variant. See [Strict Mode documentation](https://platform.openai.com/docs/guides/function-calling#strict-mode) for more info.
 3. Having `error` in an `initform` is not supported at the moment: the classes are
    instantiated before `slot-values` are assigned.
 
