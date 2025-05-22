@@ -261,32 +261,35 @@ impose four limitations on objects in order to be able to be used. This is subje
 to change, as I'm sure I can just overwrite the jzon writer to do what I want.
 
 ### Limitations
-1. An object must be instantiated in order for the
-   `com.inuoe.jzon:coerced-fields`-method to work. Therefore, the `:initform`-option
-   cannot contain something like `(error "slot cannot be empty")`
-2. Each object supplied (including its subclasses) MUST contain as their super class
-   `oai:structured-output-model`.
-3. Slot types MUST either be:
+1. Slot types MUST either be:
    1. standard types understood by JSON Schema (`number` is not permitted)
-   2. A class symbol
-   3. A `<class>-oai-list` type as defined by the `oai:def-list-type`-macro
-4. The `response-format`-object must have the `:strict`-option `t`.
+   2. class symbols
+   3. list type as defined by the `oai/json:def-schema-list-type`-macro making
+      available a `<class>-oai-list`-type
+2. The `response-format`-object must have the `:strict`-option `t`, because I haven't
+   adapted the schema creation yet to support the non-strict variant.
+3. Having `error` in an `initform` is not supported at the moment: the classes are
+   instantiated before `slot-values` are assigned.
 
-I know some of these things are easily avoided, I'll be fixing it in a week or so (16 may).
+I'll extend the parser later to support a `:initarg` flag, so that
+`:initform (error "something")` is supported for the classes to parse objects by
+class symbol. Anyway, the following is the least bad implementation I could think of
+at the time of writing. If you have ideas on how to make the internals require less
+of the user, I'm all ears.
 
-### CLOS Structured Output Example
+### CLOS Structured Output schema creation/parsing example
 
 Let's take the example from the structured outputs example from above.
 
 ```lisp
-(defclass math-step (oai/js:structured-output-model) ; Because a `step'-macro is already defined, we use another symbol in this example
+(defclass math-step () ; Because a `step'-macro is already defined, we use another symbol in this example
   ((explanation :type string)
    (output :type string)))
 
-(oai/js:def-list-type math-step)        ; <- See limitation 3
+(oai/json:def-schema-list-type math-step)        ; <- See limitation 1
 
-(defclass math-reasoning (oai/js:structured-output-model) ; <- see limitation 2
-  ((steps :type math-step-oai-list)          ; `def-list-type'-macro defines the type <CLASS>-OAI-ALIST, see limitation 3
+(defclass math-reasoning ()
+  ((steps :type math-step-oai-list)          ; `def-list-type'-macro defines the type <CLASS>-OAI-ALIST, see limitation 1
    (final-answer :type string)))
 
 (defvar *structured-output-with-clos*
@@ -297,17 +300,21 @@ Let's take the example from the structured outputs example from above.
     :response-format (oai:make-response-format
                       "json_schema"
                       :json-schema (oai:make-json-schema "math-reasoning"
-                                                         :schema (make-instance 'math-reasoning)
-                                                         :strict t ; <- See limitation 4
+                                                         :schema (oai/json:schema 'math-reasoning)
+                                                         :strict t ; <- See limitation 2
                                                          )))))
-(defvar *structured-output-response-content-with-clos*
-  (oai:content
-   (oai:message
-    (aref
-     (oai:choices *structured-output-with-clos*) 0))))
+
+(defvar *structured-output-response-with-clos*
+  (oai/json:parse 'math-reasoning
+                  (com.inuoe.jzon:parse
+                   (oai:content
+                    (oai:message
+                     (aref (oai:choices *structured-output-with-clos*)
+                           0))))))
 ```
 
-As you can see, you have to manually map it back at the moment.
+As you can see, you have to manually map it back at the moment. When I've implemented
+more, I'll write convenience functions for quick one-twos.
 
 # Install
 ## qlot
