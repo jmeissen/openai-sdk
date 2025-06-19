@@ -93,6 +93,7 @@
                 #:url
                 #:url-citation
                 #:usage)
+  (:import-from #:openai-sdk/structured-output #:structured-output)
   (:export
 
    ;; core
@@ -202,6 +203,9 @@
    #:transcript
    #:url
    #:url-citation
-   #:usage))
+   #:usage
+
+   ;; structured output
+   #:structured-output))
 
 (in-package #:openai-sdk)

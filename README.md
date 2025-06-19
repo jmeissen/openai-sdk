@@ -180,37 +180,28 @@ Note: see the last example for CLOS -> JSON Schema -> CLOS.
 
 ## Structured outputs
 
+Defining classes and types. See below for more info on JSON schemas:
 ```lisp
-(defvar *structured-output*
-  (oai:create-chat-completion
-   (oai:make-chat-completion
-    `((:system "You are a helpful math tutor. Guide the user through the solution step by step.")
-      (:user "how can I solve 8x + 7 = -23"))
-    :response-format (oai:make-response-format
-                      "json_schema"
-                      :json-schema (oai:make-json-schema
-                                    "math-reasoning"
-                                    :schema (flet ((h (&rest args) (alexandria:plist-hash-table args :test #'equalp)))
-                                              (h "type" "object"
-                                                 "properties" (h "steps" (h "type" "array"
-                                                                            "items" (h "type" "object"
-                                                                                       "properties" (h "explanation" (h "type" "string")
-                                                                                                       "output" (h "type" "string"))
-                                                                                       "required" '("explanation" "output")
-                                                                                       "additionalProperties" nil))
-                                                                 "final_answer" (h "type" "string"))
-                                                 "required" '("steps" "final_answer")
-                                                 "additionalProperties" nil))
-                                    :strict t)))))
+(defclass math-step ()
+  ((explanation :type string)
+   (output :type string)))
 
-(defvar *structured-output-response-content*
-  (oai:content
-   (oai:message
-    (aref
-     (oai:choices *structured-output*) 0))))
+(oai/json:def-schema-list-type math-step)
+
+(defclass math-reasoning ()
+  ((steps :type math-step-oai-list)
+   (final-answer :type string)))
 ```
 
-`*structured-output-response-content*` will contain something like the following, but unformatted:
+Constructing object based on response:
+```lisp
+CL-USER> (oai:structured-output 'math-reasoning
+                                "You are a helpful math tutor. Guide the user through the solution step by step."
+                                '("how can I solve 8x + 7 = -23"))
+#<MATH-REASONING {7009974813}>
+```
+
+In JSON, looks like the following:
 ```json
 {
   "steps": [
@@ -284,7 +275,7 @@ of the user, I'm all ears.
 Let's take the example from the structured outputs example from above.
 
 ```lisp
-(defclass math-step () ; Because a `step'-macro is already defined, we use another symbol in this example
+(defclass math-step ()
   ((explanation :type string)
    (output :type string)))
 

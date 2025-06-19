@@ -15,7 +15,7 @@
 
 (in-package #:openai-sdk/json)
 
-(eval-when (:compile-toplevel)
+(eval-when (:compile-toplevel :load-toplevel)
   (defparameter *openai-list-type-suffix* "-OAI-LIST"))
 
 (defmacro def-schema-list-type (class)

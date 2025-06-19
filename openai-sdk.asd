@@ -14,6 +14,7 @@
                              (:file "response")
                              (:file "chat-completion")
                              (:file "request")
+                             (:file "structured-output")
                              (:file "openai-sdk"))))
   :depends-on (:dexador
                :alexandria
