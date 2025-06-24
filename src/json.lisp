@@ -31,10 +31,10 @@
              '(satisfies ,class-sym))
            '(,class-sym ,type-sym))))))
 
-(def-schema-list-type string)
-(def-schema-list-type integer)
-(def-schema-list-type float)
-(def-schema-list-type boolean)
+(def-schema-list-type string)           ; string-oai-list
+(def-schema-list-type integer)          ; integer-oai-list
+(def-schema-list-type float)            ; float-oai-list
+(def-schema-list-type boolean)          ; boolean-oai-list
 
 (defparameter *default-types*
   '((string . "string")
