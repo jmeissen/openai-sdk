@@ -484,22 +484,31 @@ echo, fable, nova, onyx, sage, and shimmer."))
    (parameters
     :accessor parameters
     :initarg :parameters
+    :type hash-table
     :documentation "The parameters the functions accepts, described as a
- JSON Schema object. See the guide for examples, and the JSON Schema reference for
- documentation about the format. Omitting parameters defines a function with an empty
- parameter list.")
+ JSON Schema object. Omitting parameters defines a function with an empty
+ parameter list.
+
+See `openai-sdk/tool-call:make-tool' for an example how to generate the appropriate
+hash-table relatively conveniently.")
    (strict
     :accessor strict
     :initarg :strict
     :type boolean
-    :documentation "Whether to enable strict schema adherence when generating the
- function call. If set to true, the model will follow the exact schema defined in the
- parameters field. Only a subset of JSON Schema is supported when strict is true.
- Learn more about Structured Outputs in the function calling guide. Note: Do not set
- for legacy functions.")))
+    :documentation "Strict schema adherence when generating the function call.
 
-(defun make-function (name &rest args &key description parameters strict) ; FIXME: paramaters json schema object serialization
-  (declare (ignore description parameters strict))
+If `strict' is `t'
+1. The model will follow the exact schema defined in the `parameters'-field
+2. Only a subset of JSON Schema is supported
+3. All object properties (in `parameters') must be present in the \"required\"-field
+4. \"additionalProperties\" must be set to `nil' in \"object\"-schema-type
+
+Note 1: With `strict' `t', optional fields can be denoted by appending to enum type \"null\"
+Note 2: Do not set for legacy functions.")))
+
+(defun make-function (name &rest args &key description parameters strict)
+  (declare (ignore description strict))
+  (check-type parameters hash-table "A jzon parseable hash-table")
   (apply #'make-instance 'function :name name args))
 
 (defun functions-p (els)
