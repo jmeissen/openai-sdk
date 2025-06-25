@@ -546,7 +546,7 @@ convenience wrappers, in addition to a easy as possible wrapper of the OpenAI AP
 
 ## Implement
 - [x] Chat Completions API
-  - [ ] Structured output/function calling/tool calling framework
+  - [x] Structured output/function calling/tool calling framework
   - [ ] Streaming
 - [ ] Responses API
 - [ ] Platform APIs
