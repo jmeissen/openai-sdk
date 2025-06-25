@@ -60,7 +60,8 @@
                 #:create-chat-completion)
   (:import-from #:openai-sdk/tool-call
                 #:make-tool
-                #:get-tool)
+                #:get-tool
+                #:tool-call)
   (:import-from #:openai-sdk/response
                 #:accepted-prediction-tokens
                 #:annotations
@@ -176,6 +177,7 @@
    ;; tool-call
    #:make-tool
    #:get-tool
+   #:tool-call
 
    ;; response
    #:accepted-prediction-tokens
