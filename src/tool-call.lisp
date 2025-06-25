@@ -94,9 +94,10 @@ You can add tools via `make-tool'."))
 (defun get-tool (&rest path)
   "Get tool from registry at PATH.
 
-PATH must be either a
+PATH must be
 - string: \"category-name\"; or \"function-name\"),
-- hierarchical list: '(\"category-name\" \"function-name\")."
+- multiple strings: (get-tool \"category-name\" \"function-name\")
+"
   (if (= 1 (length path))
       (uiop:if-let ((category (assoc (car path) *registry* :test #'equal)))
         (cdr category)
@@ -205,9 +206,14 @@ TOOLS is a list of `tool' structs."
   (loop for el in argument-names
         collect (cdr (assoc el response-arguments :test #'equal))))
 
+(defmethod tool-call ((tool-path list) (system-message string) &optional messages)
+  (tool-call (apply #'get-tool tool-path) system-message messages))
+
 (defmethod tool-call ((tool-path string) (system-message string) &optional messages)
-  (let* ((tool (get-tool tool-path))
-         chat-completion-response
+  (tool-call (get-tool tool-path) system-message messages))
+
+(defmethod tool-call ((tool tool) (system-message string) &optional messages)
+  (let* (chat-completion-response
          tool-call-response
          (response-arguments (alexandria:hash-table-alist
                               (com.inuoe.jzon:parse
@@ -220,7 +226,10 @@ TOOLS is a list of `tool' structs."
                                                                     (create-chat-completion
                                                                      (make-chat-completion
                                                                       (cons (make-system-message system-message)
-                                                                            messages)
+                                                                            (etypecase messages
+                                                                              (string (list messages))
+                                                                              (openai-sdk/chat-completion:user-message (list messages))
+                                                                              (list messages)))
                                                                       :tools (list tool)
                                                                       :tool-choice (openai-sdk/chat-completion:make-tool-choice
                                                                                     (tool-name tool))))))
