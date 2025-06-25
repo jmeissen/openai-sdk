@@ -145,7 +145,136 @@ Note: see the last example for CLOS -> JSON Schema -> CLOS.
      (aref (oai:choices *response*) 0)))))
 ```
 
-## Tool calling
+## Schema generation
+
+I have included a
+convenience wrapper for writing JSON Schemas to include as `:parameters`. However,
+this part is not yet feature-complete (I have not included references). So if you
+want to do esoteric stuff in the JSON schema tool-call parameters, then you must
+conform to `com.inuoe.jzon` type-mappings yourself when defining your tool (defined
+[here](https://github.com/Zulu-Inuoe/jzon?tab=readme-ov-file#type-mappings). Additionally,
+then, see the documentation on supported OpenAI JSON Schema keywords
+[here](https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat#supported-schemas). For
+normal cases, the convenience wrapper will do.
+
+Note that in my opinion, forcing `com.inuoe.jzon` adherence is *not* a bug because I
+think writing anything non-s-exp in Lisp is a pain in the ass and having
+documentation on what values are valid is convenient, besides having the complete
+request in Common Lisp code ready for introspection. If you disagree, then feel free
+to open an issue.
+
+Full Examples:
+
+```lisp
+CL-USER> (com.inuoe.jzon:stringify
+          (oai:type-string))
+"{\"type\":\"string\"}"
+
+CL-USER> (com.inuoe.jzon:stringify
+          (oai:type-boolean))
+"{\"type\":\"boolean\"}"
+
+CL-USER> (com.inuoe.jzon:stringify
+          (oai:type-number))
+"{\"type\":\"number\"}"
+
+CL-USER> (com.inuoe.jzon:stringify
+          (oai:type-integer))
+"{\"type\":\"integer\"}"
+
+CL-USER> (com.inuoe.jzon:stringify
+          (oai:type-object #()))
+"{\"type\":\"object\",\"required\":[]}"
+
+CL-USER> (com.inuoe.jzon:stringify
+          (oai:type-array (oai:type-string)))
+"{\"type\":\"array\",\"items\":{\"type\":\"string\"}}"
+
+CL-USER> (com.inuoe.jzon:stringify
+          (oai:type-enum #(string null)))
+"{\"type\":[\"string\",\"null\"]}"
+
+CL-USER> (com.inuoe.jzon:stringify
+          (oai:type-any-of (coerce (list (oai:type-string)
+                                         (oai:type-number))
+                                   'simple-vector)))
+"{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"number\"}]}"
+
+```
+
+Of course, they can be nested:
+
+```lisp
+(format t (com.inuoe.jzon:stringify (oai:type-object #(test some-number)
+                   :properties `(:test ,(oai:type-string)
+                                 :some-number ,(oai:type-integer)
+                                 :array-of-objects ,(oai:type-array
+                                                     (oai:type-any-of
+                                                      (coerce
+                                                       (list
+                                                        (oai:type-object #()
+                                                                         :properties `(:some-optional-string
+                                                                                       ,(oai:type-string
+                                                                                         :description "this is only optional"
+                                                                                         :enum #("this" "or" "the other"))))
+                                                        (oai:type-object #(mandatory-string)
+                                                                         :properties `(:mandatory-string
+                                                                                       ,(oai:type-enum
+                                                                                         #(string null)
+                                                                                         :description "also optional through its multiple types"
+                                                                                         :enum #("this" "or" "the other")))))
+                                                       'simple-vector))))
+                   :description "this is a test with a number, string, and array of objects") :pretty t))
+```
+Which corresponds to
+```json
+{
+  "type": "object",
+  "properties": {
+    "test": {"type": "string"},
+    "some-number": {"type": "integer"},
+    "array-of-objects": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "some-optional-string": {
+                "description": "this is only optional",
+                "enum": ["this", "or", "the other"],
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          {
+            "type": "object",
+            "properties": {
+              "mandatory-string": {
+                "description": "also optional through its multiple types",
+                "enum": ["this", "or", "the other"],
+                "type": ["string", "null"]
+              }
+            },
+            "required": ["mandatory-string"]
+          }
+        ]
+      }
+    }
+  },
+  "description": "this is a test with a number, string, and array of objects",
+  "required": ["test", "some-number"]
+}
+```
+
+For more info, see the package `openai-sdk:tool-schema-generator`.
+
+## Tool calls
+Schema generation is handy for tool calls and structured outputs. And you can apply
+the above JSON Schema wrapper for your own tool call builds.
+
+Example:
 ```lisp
 (defvar *tool-call-response*
   (oai:create-chat-completion
@@ -155,17 +284,9 @@ Note: see the last example for CLOS -> JSON Schema -> CLOS.
                   (oai:make-function
                    "get-weather"
                    :description "Get current temperature for a given location"
-                   :parameters (let ((parameters (make-hash-table :test #'equal))
-                                     (properties (make-hash-table :test #'equal))
-                                     (location (make-hash-table :test #'equal)))
-                                 (setf (gethash "type" parameters) "object")
-                                 (setf (gethash "type" location) "string")
-                                 (setf (gethash "description" location) "City and country e.g. Bogotá, Colombia")
-                                 (setf (gethash "location" properties) location)
-                                 (setf (gethash "properties" parameters) properties)
-                                 (setf (gethash "required" parameters) '("location"))
-                                 (setf (gethash "additionalProperties" parameters) nil)
-                                 parameters)
+                   :parameters (oai:type-object #(location)
+                                                :properties `(:location ,(oai:type-string :description "City and country e.g. Bogotá, Colombia"))
+                                                :additional-properties nil)
                    :strict t)))
     :tool-choice (oai:make-tool-choice "get-weather"))))
 
@@ -177,6 +298,80 @@ Note: see the last example for CLOS -> JSON Schema -> CLOS.
             (aref (oai:choices *tool-call-response*) 0)))
           0))))
 ```
+
+As the above example shows, you are completely free to handle tool calls with chat
+completions how you like. However, I have additionally *more or less* copied the
+[Gptel](https://github.com/karthink/gptel) API to conveniently manage tool use. Most
+important exported functions are:
+
+- `oai:make-tool`
+- `oai:tool-call`
+- `oai:get-tool`
+
+First, two propositions and one consequence, however. The first is that `:parameter`
+order is not maintained because JSON-objects in `com.inuoe.jzon` are
+`hash-table`s. Additionally, and secondly, *afaik(?)* the
+`function-lambda-expression` is lost in the default compilation optimization. The
+consequence is that the function you want to automagically call **must** be wrapped
+in a `lambda` and the argument names **must** equate to the `:parameter`-keywords in
+the generated schema in order for my tool-call convenience wrapper to
+work.
+
+Alternatively, (afaik) two solutions exist. First, generate an argument plist that
+gets applied to the compiled function. This may be a viable way to assign any
+function without wrapping lambdas. Second is to allow only one argument, the list of
+results. Both, I think, are restrictive, and the lambda is atm easiest. Please open
+an issue if you disagree.
+
+Now, an example of tool-calling the convenient way:
+
+```lisp
+CL-USER> (oai:make-tool :function (lambda (city-name)
+                           (format nil "Par example, it's probably something like 18℃ in the 'ol town of ~a" city-name))
+               :name "get-weather"
+               :description "Get current temperature for the town name in celsius"
+               :args (oai/tsg:type-object #("city-name") ; both symbols, keywords, and strings are fine to use.
+                                          :properties `(city-name ,(oai:type-string)) ; same here
+                                          :additional-properties nil)
+               :strict t)
+#<OPENAI-SDK/TOOL-CALL:TOOL {7009375A13}>
+```
+
+Like gptel, without specifying a `:category`, it gets dumped in the category "misc"
+of the variable `openai-sdk/tool-call::*registry*`.
+
+Verifying its existence:
+```lisp
+CL-USER> openai-sdk/tool-call::*registry*
+(("misc" ("get-weather" . #<OPENAI-SDK/TOOL-CALL:TOOL {700BC00283}>)))
+```
+
+Easier, however, the tool is retrieved with `oai:get-tool`. If distinct categories
+exist with equal function names in it, then the tool-category can be prepended to the
+tool name for specified search.
+
+```lisp
+CL-USER> (oai:get-tool "misc")
+(("get-weather" . #<TOOL {700BC00283}>))
+CL-USER> (oai:get-tool "get-weather")
+#<TOOL {700BC00283}>
+CL-USER> (oai:get-tool "misc" "get-weather")
+#<TOOL {700BC00283}>
+```
+
+Calling the function of the tool from the registry is easy now:
+
+```lisp
+CL-USER> (oai:tool-call "get-weather"
+                        "You retrieve the city from a string."
+                        "What is the weather like in Alyssa P Hacker's city of Cambridge?")
+"Par example, it's probably something like 18℃ in the 'ol town of Cambridge"
+"call_l8JcbKlb98dk7cCZ3CfcnGP4"
+#<OPENAI-SDK/RESPONSE::COMPLETION {700A6DC2A3}>
+```
+
+The three return values come in handy when applying the response in a thread, as the
+completion response can be reused in new calls.
 
 ## Structured outputs
 
