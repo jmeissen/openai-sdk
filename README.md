@@ -124,17 +124,9 @@ Note: see the last example for CLOS -> JSON Schema -> CLOS.
                 (oai:make-function
                  "get-weather"
                  :description "Get current temperature for a given location"
-                 :parameters (let ((parameters (make-hash-table :test #'equal))
-                                   (properties (make-hash-table :test #'equal))
-                                   (location (make-hash-table :test #'equal)))
-                               (setf (gethash "type" parameters) "object")
-                               (setf (gethash "type" location) "string")
-                               (setf (gethash "description" location) "City and country e.g. Bogotá, Colombia")
-                               (setf (gethash "location" properties) location)
-                               (setf (gethash "properties" parameters) properties)
-                               (setf (gethash "required" parameters) '("location"))
-                               (setf (gethash "additionalProperties" parameters) nil)
-                               parameters)))
+                 :parameters (oai:type-object #(location)
+                                              :properties `(:location ,(oai:type-string :description "City and country e.g. Bogotá, Colombia"))
+                                              :additional-properties nil)))
     :function-call (oai:make-function-call "get-weather"))))
 
 
