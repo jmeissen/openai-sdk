@@ -563,4 +563,3 @@ convenience wrappers, in addition to a easy as possible wrapper of the OpenAI AP
 - [ ] Assistants API
 - [ ] Administration API
 - [ ] [Rate limits](https://platform.openai.com/docs/guides/rate-limits)
-- [ ] (maybe) Completions API
