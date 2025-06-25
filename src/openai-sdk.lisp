@@ -49,15 +49,18 @@
                 #:make-text-content-part
                 #:make-tool-call
                 #:make-tool-choice
-                #:make-tool
                 #:make-tool-message
                 #:make-user-location
                 #:make-user-message
                 #:make-web-search-options
                 #:parameters
+                #:tools
                 #:voice)
   (:import-from #:openai-sdk/request
                 #:create-chat-completion)
+  (:import-from #:openai-sdk/tool-call
+                #:make-tool
+                #:get-tool)
   (:import-from #:openai-sdk/response
                 #:accepted-prediction-tokens
                 #:annotations
@@ -83,6 +86,7 @@
                 #:prompt-tokens-details
                 #:reasoning-tokens
                 #:rejected-prediction-tokens
+                #:response-message
                 #:service-tier
                 #:start-index
                 #:system-fingerprint
@@ -159,7 +163,6 @@
    #:make-stream-options
    #:make-system-message
    #:make-text-content-part
-   #:make-tool
    #:make-tool-call
    #:make-tool-choice
    #:make-tool-message
@@ -167,7 +170,12 @@
    #:make-user-message
    #:make-web-search-options
    #:parameters
+   #:tools
    #:voice
+
+   ;; tool-call
+   #:make-tool
+   #:get-tool
 
    ;; response
    #:accepted-prediction-tokens
@@ -194,6 +202,7 @@
    #:prompt-tokens-details
    #:reasoning-tokens
    #:rejected-prediction-tokens
+   #:response-message
    #:service-tier
    #:start-index
    #:system-fingerprint

@@ -49,6 +49,7 @@
            #:reasoning-tokens
            #:refusal
            #:rejected-prediction-tokens
+           #:response-message
            #:role
            #:service-tier
            #:start-index

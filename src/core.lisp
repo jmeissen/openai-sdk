@@ -14,7 +14,8 @@
                              (defgeneric ,g (object))
                              (export ',g 'openai-sdk/core)))))
 
-(dg (arguments
+(dg (%morph
+     arguments
      audio
      b64encode
      content

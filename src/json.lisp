@@ -43,7 +43,6 @@
     (boolean . "bool")
     (null . "null")))
 
-
 (defun slot-names (class)
   (mapcar
    (lambda (slot) (symbol-munger:lisp->underscores (c2mop:slot-definition-name slot)))

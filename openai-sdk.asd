@@ -14,9 +14,12 @@
                              (:file "response")
                              (:file "chat-completion")
                              (:file "request")
+                             (:file "tool-call")
                              (:file "structured-output")
+                             (:file "tool-schema-generator")
                              (:file "openai-sdk"))))
-  :depends-on (:dexador
+  :depends-on (:str
+               :dexador
                :alexandria
                :com.inuoe.jzon
                :symbol-munger
