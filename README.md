@@ -111,7 +111,8 @@ However, you are still free to generate messages threads yourself. See below for
 
 ## Legacy function calling
 
-Note: see the last example for CLOS -> JSON Schema -> CLOS.
+While deprecated, its still usable. See the following section for how the JSON Schema
+comes about, and the section after that for tool-calling and the convenience wrapper.
 
 ```lisp
 (oai:make-openai "<api-key>")
