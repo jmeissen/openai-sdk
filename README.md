@@ -138,13 +138,13 @@ comes about, and the section after that for tool-calling and the convenience wra
      (aref (oai:choices *response*) 0)))))
 ```
 
-## Schema generation
+## JSON Schema generation for tool calling
 
-I have included a
-convenience wrapper for writing JSON Schemas to include as `:parameters`. However,
-this part is not yet feature-complete (I have not included references). So if you
-want to do esoteric stuff in the JSON schema tool-call parameters, then you must
-conform to `com.inuoe.jzon` type-mappings yourself when defining your tool (defined
+I have included a convenience wrapper for writing JSON Schemas to include as
+`:parameters`. However, this part is not yet feature-complete (I have not included
+references). So if you want to do esoteric stuff in the JSON schema tool-call
+parameters, then you must conform to `com.inuoe.jzon` type-mappings yourself when
+defining your tool (defined
 [here](https://github.com/Zulu-Inuoe/jzon?tab=readme-ov-file#type-mappings). Additionally,
 then, see the documentation on supported OpenAI JSON Schema keywords
 [here](https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat#supported-schemas). For
@@ -366,84 +366,20 @@ CL-USER> (oai:tool-call "get-weather"
 The three return values come in handy when applying the response in a thread, as the
 completion response can be reused in new calls.
 
-## Structured outputs
+## Structured outputs and JSON Schemas
 
-Defining classes and types. See below for more info on JSON schemas:
-```lisp
-(defclass math-step ()
-  ((explanation :type string)
-   (output :type string)))
-
-(oai/json:def-schema-list-type math-step)
-
-(defclass math-reasoning ()
-  ((steps :type math-step-oai-list)
-   (final-answer :type string)))
-```
-
-Constructing object based on response:
-```lisp
-CL-USER> (oai:structured-output 'math-reasoning
-                                "You are a helpful math tutor. Guide the user through the solution step by step."
-                                '("how can I solve 8x + 7 = -23"))
-#<MATH-REASONING {7009974813}>
-```
-
-In JSON, looks like the following:
-```json
-{
-  "steps": [
-    {
-      "explanation": "We start with the equation 8x + 7 = -23. Our goal is to isolate the variable x. We first need to eliminate the constant term on the left-hand side, which is 7.",
-      "output": "8x + 7 = -23"
-    },
-    {
-      "explanation": "To eliminate the 7, subtract 7 from both sides of the equation. This will remove the 7 from the left side.",
-      "output": "8x + 7 - 7 = -23 - 7"
-    },
-    {
-      "explanation": "Simplifying both sides, we are left with 8x on the left, and -30 on the right.",
-      "output": "8x = -30"
-    },
-    {
-      "explanation": "Now, divide both sides of the equation by 8 to solve for x. This will isolate the x.",
-      "output": "8x / 8 = -30 / 8"
-    },
-    {
-      "explanation": "Simplifying the right side, we perform the division -30 divided by 8. It results in a fraction or a decimal. Here, as a fraction it is:",
-      "output": "x = -30/8"
-    },
-    {
-      "explanation": "Simplify the fraction -30/8 by finding the greatest common divisor of 30 and 8, which is 2, and divide both numerator and denominator by 2.",
-      "output": "x = -15/4"
-    },
-    {
-      "explanation": "Alternatively, convert -15/4 to a decimal by dividing 15 by 4 to get an approximate decimal value:",
-      "output": "x = -3.75"
-    }
-  ],
-  "final_answer": "x = -15/4 or x = -3.75"
-}
-```
-
-## JSON Schemas
-As you surely know, JSON schemas are applied in OpenAI's function-/tool calling and
-structured outputs. However, writing JSON schemas is a pain in the ass. So, instead
-of writing out the json schemas, it is my goal to provide a convenient way to go from
-`class` through OpenAI to the wanted `object` instantiated.
-
-Comfort is limited, however. Most importantly because of the way class slot types
+Comfort is limited here, however. The main cause is the way class slot types
 function. Specifically, slot `:type`s are only evaluated compile-time to denote
 return values of readers and to throw warnings when the wrong type is used in the
 `:initform`, and what to do on runtime slot allocation with incorrect data types is
 undefined by the spec. In other words, runtime datatype analysis to correctly convert
 to JSON schema is a pain in the ass. To limit yakshaving, at the time of writing, I
-impose four limitations on objects in order to be able to be used. This is subject
-to change, as I'm sure I can just overwrite the jzon writer to do what I want.
+impose three limitations on `defclass` as schema. This is subject to change when I
+learn what limitations are problematic in practice.
 
 ### Limitations
 1. Slot types MUST either be:
-   1. standard types understood by JSON Schema (`number` is not permitted)
+   1. schemas understood by [OpenAI's JSON Schema](https://platform.openai.com/docs/guides/structured-outputs#supported-schemas)
    2. class symbols
    3. list type as defined by the `oai/json:def-schema-list-type`-macro making
       available a `<class>-oai-list`-type
@@ -452,11 +388,11 @@ to change, as I'm sure I can just overwrite the jzon writer to do what I want.
 3. Having `error` in an `initform` is not supported at the moment: the classes are
    instantiated before `slot-values` are assigned.
 
-I'll extend the parser later to support a `:initarg` flag, so that
+One solution is to extend the parser to support a `:initarg` flag, so that
 `:initform (error "something")` is supported for the classes to parse objects by
-class symbol. Anyway, the following is the least bad implementation I could think of
-at the time of writing. If you have ideas on how to make the internals require less
-of the user, I'm all ears.
+class symbol, but I have had no reason yet to prioritize this. Anyway, the following
+is the least bad implementation I could think of at the time of writing. If you have
+ideas on how to make the internals require less of the user, please open an issue.
 
 ### CLOS Structured Output schema creation/parsing example
 
@@ -494,8 +430,54 @@ Let's take the example from the structured outputs example from above.
                            0))))))
 ```
 
-As you can see, you have to manually map it back at the moment. When I've implemented
-more, I'll write convenience functions for quick one-twos.
+As you can see, you can manually map it back if you want. However, I've implemented a
+convenience for quick one-twos.
+
+### The convenience wrapper
+
+Defining classes and types. See below for more info on JSON schemas:
+```lisp
+(defclass math-step ()
+  ((explanation :type string)
+   (output :type string)))
+
+(oai/json:def-schema-list-type math-step)
+
+(defclass math-reasoning ()
+  ((steps :type math-step-oai-list)
+   (final-answer :type string)))
+```
+
+Constructing object based on response:
+```lisp
+CL-USER> (oai:structured-output 'math-reasoning
+                                "You are a helpful math tutor. Guide the user through the solution step by step."
+                                '("how can I solve 8x + 7 = -23"))
+#<MATH-REASONING {7009974813}>
+CL-USER> (format t (com.inuoe.jzon:stringify * :pretty t))
+{
+  "steps": [
+    {
+      "explanation": "We start by isolating the term with x, which is 8x. To do this, subtract 7 from both sides of the equation.",
+      "output": "8x + 7 - 7 = -23 - 7"
+    },
+    {
+      "explanation": "After subtracting 7 from both sides, the equation simplifies. The +7 and -7 on the left side cancel out, leaving us with 8x.",
+      "output": "8x = -30"
+    },
+    {
+      "explanation": "Now, to solve for x, divide both sides by 8 to isolate x.",
+      "output": "x = -30 / 8"
+    },
+    {
+      "explanation": "Simplify the fraction -30/8 by dividing both the numerator and the denominator by the greatest common divisor, which is 2.",
+      "output": "x = -15 / 4"
+    }
+  ],
+  "final-answer": "x = -\\frac{15}{4}"
+}
+NIL
+```
 
 # Install
 ## qlot
