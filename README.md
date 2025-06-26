@@ -479,6 +479,33 @@ CL-USER> (format t (com.inuoe.jzon:stringify * :pretty t))
 NIL
 ```
 
+## Platforms API
+
+### Models
+
+#### List
+```lisp
+CL-USER> (oai:list-models)
+#("gpt-4-0613" "gpt-4" "gpt-3.5-turbo" "o3-pro-2025-06-10" "codex-mini-latest"
+  "o3-pro" "gpt-4o-realtime-preview-2025-06-03"
+  "gpt-4o-audio-preview-2025-06-03" "davinci-002" "babbage-002"
+  "gpt-3.5-turbo-instruct" "gpt-3.5-turbo-instruct-0914" "dall-e-3" "dall-e-2"
+  "gpt-4-1106-preview" ...)
+```
+
+#### Search
+```lisp
+CL-USER> (oai:search-model "o3")
+#("o3" "o3-2025-04-16" "o3-mini" "o3-mini-2025-01-31" "o3-pro"
+  "o3-pro-2025-06-10")
+```
+
+#### Delete a fine-tuned model
+```lisp
+CL-USER> (oai:delete-model "ft:gpt-4o-mini:acemeco:suffix:abc123")
+#<DELETED-MODEL {7009974813}>
+```
+
 # Install
 ## qlot
 ```sh
@@ -557,7 +584,7 @@ convenience wrappers, in addition to a easy as possible wrapper of the OpenAI AP
   - [ ] Fine-tuning
   - [ ] Files
   - [ ] Uploads
-  - [ ] Models
+  - [x] Models
   - [ ] Moderations
 - [ ] Vector stores API
 - [ ] Assistants API

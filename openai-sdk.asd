@@ -14,6 +14,7 @@
                              (:file "response")
                              (:file "chat-completion")
                              (:file "request")
+                             (:file "platform-apis")
                              (:file "tool-call")
                              (:file "structured-output")
                              (:file "tool-schema-generator")

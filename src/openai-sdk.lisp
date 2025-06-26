@@ -4,6 +4,7 @@
   (:use #:openai-sdk/util
         #:openai-sdk/client)
   (:nicknames #:oai)
+  (:use-reexport #:openai-sdk/platform-apis)
   (:use-reexport #:openai-sdk/tool-schema-generator)
   (:import-from #:openai-sdk/core
                 #:arguments
