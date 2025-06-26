@@ -435,13 +435,13 @@ convenience for quick one-twos.
 
 ### The convenience wrapper
 
-Defining classes and types. See below for more info on JSON schemas:
+Defining classes and types.
 ```lisp
 (defclass math-step ()
   ((explanation :type string)
    (output :type string)))
 
-(oai/json:def-schema-list-type math-step)
+(oai:def-schema-list-type math-step)
 
 (defclass math-reasoning ()
   ((steps :type math-step-oai-list)
