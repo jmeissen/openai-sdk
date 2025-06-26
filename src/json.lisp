@@ -2,7 +2,6 @@
 
 (uiop:define-package openai-sdk/json
   (:use #:cl)
-  (:shadow #:step)
   (:nicknames #:oai/json)
   (:export #:schema
            #:parse
@@ -10,6 +9,7 @@
            ;; Predefined list types
            #:string-oai-list
            #:integer-oai-list
+           #:number-oai-list
            #:float-oai-list
            #:boolean-oai-list))
 
@@ -33,12 +33,14 @@
 
 (def-schema-list-type string)           ; string-oai-list
 (def-schema-list-type integer)          ; integer-oai-list
+(def-schema-list-type number)           ; number-oai-list
 (def-schema-list-type float)            ; float-oai-list
 (def-schema-list-type boolean)          ; boolean-oai-list
 
-(defparameter *default-types*
+(defvar *default-types*
   '((string . "string")
     (integer . "int")
+    (number . "number")
     (float . "float")
     (boolean . "bool")
     (null . "null")))

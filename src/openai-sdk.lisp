@@ -6,6 +6,13 @@
   (:nicknames #:oai)
   (:use-reexport #:openai-sdk/platform-apis)
   (:use-reexport #:openai-sdk/tool-schema-generator)
+  (:import-from #:openai-sdk/json
+                #:def-schema-list-type
+                #:string-oai-list
+                #:integer-oai-list
+                #:number-oai-list
+                #:float-oai-list
+                #:boolean-oai-list)
   (:import-from #:openai-sdk/core
                 #:arguments
                 #:audio
@@ -219,6 +226,15 @@
    #:usage
 
    ;; structured output
-   #:structured-output))
+   #:structured-output
+
+   ;; openai-sdk/json
+   #:def-schema-list-type
+   #:string-oai-list
+   #:integer-oai-list
+   #:number-oai-list
+   #:float-oai-list
+   #:boolean-oai-list
+   ))
 
 (in-package #:openai-sdk)
