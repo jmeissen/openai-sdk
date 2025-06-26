@@ -10,7 +10,6 @@
            #:string-oai-list
            #:integer-oai-list
            #:number-oai-list
-           #:float-oai-list
            #:boolean-oai-list))
 
 (in-package #:openai-sdk/json)
@@ -34,15 +33,13 @@
 (def-schema-list-type string)           ; string-oai-list
 (def-schema-list-type integer)          ; integer-oai-list
 (def-schema-list-type number)           ; number-oai-list
-(def-schema-list-type float)            ; float-oai-list
 (def-schema-list-type boolean)          ; boolean-oai-list
 
 (defvar *default-types*
   '((string . "string")
-    (integer . "int")
+    (integer . "integer")
     (number . "number")
-    (float . "float")
-    (boolean . "bool")
+    (boolean . "boolean")
     (null . "null")))
 
 (defun slot-names (class)
