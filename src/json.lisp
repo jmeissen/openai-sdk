@@ -57,9 +57,11 @@
   (search *openai-list-type-suffix* (format nil "~A" slot-type) :test #'equal :from-end t))
 
 (defun class-symbol (list-type-symbol)
-  (let ((type-str (format nil "~A" list-type-symbol)))
+  (let ((type-str (format nil "~A" list-type-symbol))
+        (package-name (symbol-package list-type-symbol)))
     (intern (subseq type-str 0 (- (length type-str)
-                                  (length *openai-list-type-suffix*))))))
+                                  (length *openai-list-type-suffix*)))
+            (find-package package-name))))
 
 (defun generate-object-type (class)
   (alexandria:alist-hash-table
@@ -90,7 +92,7 @@
         (let* ((type-class (class-symbol slot-type))
                (default-type-p (assoc type-class *default-types*)))
           (list 'type "array"
-                'items (or (and default-type-p (generate-default-prop (cdr default-type-p)))
+                'items (or (and default-type-p (generate-default-prop (car default-type-p)))
                            (generate-object-type type-class)))))))))
 
 (defun schema (class-symbol)
@@ -105,25 +107,25 @@
          (slots (c2mop:class-slots (class-of object))))
     (loop for key being the hash-key of hash-table
           for value being the hash-value of hash-table
-          do (let ((slot-key (symbol-munger:underscores->lisp-symbol key)))
-               (setf (slot-value object slot-key)
+          do (let ((slot (find-if (lambda (slot)
+                                    (let ((slot-name (c2mop:slot-definition-name slot)))
+                                      (and (equal key (symbol-munger:lisp->underscores
+                                                       slot-name))
+                                           (not (slot-boundp object slot-name)))))
+                                  slots)))
+               (setf (slot-value object (c2mop:slot-definition-name slot))
                      (typecase value
-                       (simple-vector (if (every (lambda (item) (not (assoc (type-of item) *default-types*))) value)
+                       (simple-vector (if (notevery (lambda (val)
+                                                      (loop for el in (mapcar #'car *default-types*)
+                                                            thereis (typep val el)))
+                                                    value)
                                           (map 'simple-vector
                                                (lambda (item)
-                                                 (parse (find-class (class-symbol
-                                                                     (c2mop:slot-definition-type
-                                                                      (car (remove-if-not
-                                                                            (lambda (el) (eq slot-key (c2mop:slot-definition-name el)))
-                                                                            slots)))))
+                                                 (parse (find-class (class-symbol (c2cl:slot-definition-type slot)))
                                                         item))
                                                value)
                                           value))
-                       (hash-table (parse (find-class
-                                           (c2mop:slot-definition-type
-                                            (car (remove-if-not
-                                                  (lambda (el) (eq slot-key (c2mop:slot-definition-name el)))
-                                                  slots))))
+                       (hash-table (parse (find-class (c2mop:slot-definition-type slot))
                                           value))
                        (t value)))))
     object))
