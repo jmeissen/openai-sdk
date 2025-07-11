@@ -1,149 +1,121 @@
 (in-package #:cl-user)
 
-(defpackage openai-sdk/chat-completion
-  (:use #:cl
-        #:openai-sdk/core)
-  (:shadowing-import-from #:openai-sdk/core #:function #:type #:format)
-  (:import-from #:openai-sdk/util #:format-b64)
-  (:export #:approximate
-           #:arguments
-           #:assistant-message
-           #:assistant-message-audio
-           #:assistant-message-content
-           #:audio
-           #:audio-content-part
-           #:chat-completion
-           #:chat-completion-audio
-           #:chat-completion-function-call
-           #:chat-completion-function-call-p
-           #:chat-completion-function-call-type
-           #:city
-           #:content
-           #:content-part
-           #:country
-           #:data
-           #:description
-           #:detail
-           #:developer-message
-           #:developer-message-content
-           #:developer-message-content-p
-           #:file
-           #:file-content-part
-           #:file-data
-           #:file-id
-           #:filename
-           #:format
-           #:frequency-penalty
-           #:function
-           #:function-call
-           #:function-message
-           #:functions
-           #:functions-p
-           #:id
-           #:image-content-part
-           #:image-url
-           #:include-usage
-           #:input-audio
-           #:json-schema
-           #:list-of-strings
-           #:list-of-strings-p
-           #:logit-bias
-           #:logprobs
-           #:make-approximate
-           #:make-assistant-message
-           #:make-assistant-message-audio
-           #:make-chat-completion
-           #:make-chat-completion-audio
-           #:make-chat-completion-function-call
-           #:make-developer-message
-           #:make-file-data-content-part
-           #:make-file-id-content-part
-           #:make-function
-           #:make-function-call
-           #:make-function-message
-           #:make-json-schema
-           #:make-message-from-keyword
-           #:make-prediction
-           #:make-prediction-content-part
-           #:make-response-format
-           #:make-stream-options
-           #:make-system-message
-           #:make-text-content-part
-           #:make-tool
-           #:make-tool-call
-           #:make-tool-choice
-           #:make-tool-message
-           #:make-user-location
-           #:make-user-message
-           #:make-web-search-options
-           #:max-completion-tokens
-           #:max-tokens
-           #:message
-           #:messages
-           #:metadata
-           #:modalities
-           #:model
-           #:n
-           #:name
-           #:named-message
-           #:parallel-tool-calls
-           #:parameters
-           #:parse-message
-           #:prediction
-           #:prediction-content
-           #:prediction-content-p
-           #:prediction-content-part
-           #:presence-penalty
-           #:reasoning-effort
-           #:refusal
-           #:region
-           #:response-format
-           #:response-format-type
-           #:response-format-type-p
-           #:role
-           #:schema
-           #:search-context-size
-           #:seed
-           #:service-list
-           #:stop
-           #:stop-p
-           #:store
-           #:chat-completion-stream
-           #:stream-options
-           #:strict
-           #:system-message
-           #:system-message-content
-           #:temperature
-           #:text
-           #:text-content-part
-           #:timezone
-           #:tool
-           #:tool-call
-           #:tool-call-id
-           #:tool-calls
-           #:tool-calls-p
-           #:tool-choice
-           #:tool-choice-p
-           #:tool-choice-part
-           #:tool-message
-           #:tool-message-content
-           #:tools
-           #:tools-p
-           #:top-logprobs
-           #:top-p
-           #:type
-           #:url
-           #:user
-           #:user-location
-           #:user-message
-           #:user-message-content
-           #:user-message-content-p
-           #:voice
-           #:web-search-options))
+(uiop:define-package openai-sdk/chat-completion/classes
+  (:use #:cl #:openai-sdk/interface)
+  (:shadowing-import-from #:openai-sdk/interface #:type #:format #:function #:stream)
+  (:import-from #:openai-sdk/util #:objectify)
+  (:export
 
-(in-package #:openai-sdk/chat-completion)
+   ;; Classes
+   #:annotation
+   #:approximate
+   #:assistant-message
+   #:assistant-message-audio
+   #:audio
+   #:audio-content-part
+   #:base-logprob
+   #:chat-completion
+   #:chat-completion-audio
+   #:chat-completion-function-call
+   #:choice
+   #:completion
+   #:completion-message
+   #:completion-tokens-details
+   #:content-part
+   #:developer-message
+   #:file
+   #:file-content-part
+   #:function
+   #:function-call
+   #:function-message
+   #:image-content-part
+   #:image-url
+   #:input-audio
+   #:json-schema
+   #:logprobs
+   #:message
+   #:named-message
+   #:prediction
+   #:prediction-content-part
+   #:prompt-tokens-details
+   #:response-format
+   #:special-logprob
+   #:stream-options
+   #:system-message
+   #:text-content-part
+   #:tool
+   #:tool-call
+   #:tool-choice-part
+   #:tool-message
+   #:url-citation
+   #:usage
+   #:user-location
+   #:user-message
+   #:web-search-options
 
-(defclass message (openai-request)
+   ;; Constructors
+   #:make-annotation
+   #:make-approximate
+   #:make-assistant-message
+   #:make-assistant-message-audio
+   #:make-audio
+   #:make-base-logprob
+   #:make-chat-completion
+   #:make-chat-completion-audio
+   #:make-chat-completion-function-call
+   #:make-choice
+   #:make-completion
+   #:make-completion-message
+   #:make-completion-tokens-details
+   #:make-developer-message
+   #:make-file
+   #:make-file-data-content-part
+   #:make-file-id-content-part
+   #:make-function
+   #:make-function-call
+   #:make-function-message
+   #:make-json-schema
+   #:make-logprobs
+   #:make-message-from-keyword
+   #:make-prediction
+   #:make-prediction-content-part
+   #:make-prompt-tokens-details
+   #:make-response-format
+   #:make-special-logprob
+   #:make-stream-options
+   #:make-system-message
+   #:make-text-content-part
+   #:make-tool
+   #:make-tool-call
+   #:make-tool-choice
+   #:make-tool-choice-part
+   #:make-tool-message
+   #:make-url-citation
+   #:make-usage
+   #:make-user-location
+   #:make-user-message
+   #:make-web-search-options))
+
+(in-package #:openai-sdk/chat-completion/classes)
+
+(defmethod com.inuoe.jzon:coerced-fields ((element openai-json-serializable))
+  (macrolet ((%coerced-fields-slots (element)
+               `(let ((class (class-of ,element)))
+                  (c2mop:ensure-finalized class)
+                  (mapcar
+                   (lambda (s) (let ((slot-name (c2mop:slot-definition-name s)))
+                                 ;; Serialize slot-names as snake_case:
+                                 `(,(symbol-munger:lisp->underscores slot-name)
+                                   ,(slot-value ,element slot-name)
+                                   ,(c2mop:slot-definition-type s))))
+                   (remove-if-not (lambda (s) (slot-boundp ,element
+                                                           (c2mop:slot-definition-name s)))
+                                  (c2mop:class-slots class))))))
+    (%coerced-fields-slots element)))
+
+;; Chat Completion classes
+
+(defclass message (openai-json-serializable)
   ((role :reader role)
    (content :initarg :content
             :accessor content)))
@@ -152,7 +124,7 @@
   ((name :initarg :name
          :accessor name)))
 
-(defclass content-part (openai-request)
+(defclass content-part (openai-json-serializable)
   ((type :type string
          :reader type)))
 
@@ -165,7 +137,7 @@
 (defun make-text-content-part (text)
   (make-instance 'text-content-part :text text))
 
-(defclass image-url (openai-request)
+(defclass image-url (openai-json-serializable)
   ((url :initarg :url
         :accessor url
         :type string
@@ -181,7 +153,7 @@
               :accessor image-url
               :type image-url)))
 
-(defclass input-audio (openai-request)
+(defclass input-audio (openai-json-serializable)
   ((data :type string
          :accessor data
          :initarg :data
@@ -197,7 +169,7 @@
                 :accessor input-audio
                 :type input-audio)))
 
-(defclass file (openai-request)
+(defclass file (openai-json-serializable)
   ((file-data :initarg :file-data
               :accessor file-data
               :type string
@@ -235,7 +207,7 @@ FILE-ID is the string reference to an already uploaded file."
 (defun make-file-id-content-part (file-id)
   (make-instance 'file-content-part :file (make-file :file-id file-id)))
 
-(defun user-message-content-p (msg)
+(defun %user-message-content-p (msg)
   (or (stringp msg)
       (and (consp msg)
            (every (lambda (el) (or (typep el 'text-content-part)
@@ -245,7 +217,7 @@ FILE-ID is the string reference to an already uploaded file."
                   msg))))
 
 (deftype user-message-content ()
-  `(satisfies user-message-content-p))
+  `(satisfies %user-message-content-p))
 
 (defclass user-message (named-message)
   ((role :initform "user")
@@ -255,14 +227,14 @@ FILE-ID is the string reference to an already uploaded file."
   (declare (ignore name))
   (apply #'make-instance 'user-message :content content args))
 
-(defun developer-message-content-p (msg)
+(defun %developer-message-content-p (msg)
   (or (stringp msg)
       (and (consp msg)
            (every (lambda (el) (or (typep el 'text-content-part)))
                   msg))))
 
 (deftype developer-message-content ()
-  `(satisfies developer-message-content-p))
+  `(satisfies %developer-message-content-p))
 
 (defclass developer-message (named-message)
   ((role :initform "developer")
@@ -273,7 +245,7 @@ FILE-ID is the string reference to an already uploaded file."
   (apply #'make-instance 'developer-message :content content args))
 
 (deftype system-message-content ()
-  `(satisfies developer-message-content-p))
+  `(satisfies %developer-message-content-p))
 
 (defclass system-message (developer-message)
   ((role :initform "system")
@@ -284,9 +256,9 @@ FILE-ID is the string reference to an already uploaded file."
   (apply #'make-instance 'system-message :content content args))
 
 (deftype assistant-message-content ()
-  `(satisfies developer-message-content-p))
+  `(satisfies %developer-message-content-p))
 
-(defclass assistant-message-audio (openai-request)
+(defclass assistant-message-audio (openai-json-serializable)
   ((id :initarg :id
        :accessor id
        :type string
@@ -296,7 +268,7 @@ FILE-ID is the string reference to an already uploaded file."
 (defun make-assistant-message-audio (id)
   (make-instance 'assistant-message-audio :id id))
 
-(defclass function-call (openai-request)
+(defclass function-call (openai-json-serializable)
   ((arguments :type string
               :accessor arguments
               :initarg :arguments
@@ -312,12 +284,13 @@ FILE-ID is the string reference to an already uploaded file."
   (:documentation "Deprecated and replaced by tool_calls. The name and arguments of a function that
 should be called, as generated by the model."))
 
-(defun make-function-call (name &rest args &key arguments)
-  (declare (ignore arguments))
-  (apply #'make-instance 'function-call :name name args))
+(defun make-function-call (&rest args &key name arguments)
+  (declare (ignore name arguments))
+  (apply #'make-instance 'function-call args))
 
-(defclass tool-call (openai-request)
+(defclass tool-call (openai-json-serializable)
   ((type :initform "function"
+         :initarg :type
          :reader type
          :documentation "The type of the tool. Currently, only 'function' is supported.")
    (function :initarg :function
@@ -330,20 +303,30 @@ should be called, as generated by the model."))
        :initform (error "required")
        :documentation "The ID of the tool call.")))
 
-(defun make-tool-call (function id type)
-  (make-instance 'tool-call :function function :id id :type type))
+(defun make-tool-call (&rest args &key function id type)
+  (declare (ignore function id type))
+  (apply #'make-instance 'tool-call args))
 
-(defun tool-calls-p (tc)
+(defun make-completion-tool-call (&key function id type)
+  (make-instance 'tool-call :function (objectify 'make-function-call function)
+                            :id id
+                            :type type))
+
+(defun %tool-calls-p (tc)
   (and (consp tc)
        (every (lambda (tt) (typep tt 'tool-call))
               tc)))
 
 (deftype tool-calls ()
-  `(satisfies tool-calls-p))
+  `(satisfies %tool-calls-p))
 
 (defclass assistant-message (developer-message)
-  ((role :initform "assistant")
-   (content :type assistant-message-content)
+  ((content :type assistant-message-content)
+   (refusal :initarg :refusal
+            :accessor refusal
+            :type string
+            :documentation "The refusal message by the assistant.")
+   (role :initform "assistant")
    (audio :initarg :audio
           :accessor audio
           :type assistant-message-audio
@@ -353,10 +336,6 @@ should be called, as generated by the model."))
                   :type function-call
                   :documentation "Deprecated and replaced by tool_calls. The name and
  arguments of a function that should be called, as generated by the model.")
-   (refusal :initarg :refusal
-            :accessor refusal
-            :type string
-            :documentation "The refusal message by the assistant.")
    (tool-calls :initarg :tool-calls
                :accessor tool-calls
                :type tool-calls
@@ -368,7 +347,7 @@ should be called, as generated by the model."))
   (apply #'make-instance 'assistant-message args))
 
 (deftype tool-message-content ()
-  `(satisfies developer-message-content-p))
+  `(satisfies %developer-message-content-p))
 
 (defclass tool-message (message)
   ((role :initform "tool")
@@ -393,59 +372,7 @@ should be called, as generated by the model."))
 (defun make-function-message (name &optional (content 'null))
   (make-instance 'function-message :name name :content content))
 
-(defun build-user-message-content-parts (user-message-content-list)
-  (loop for msg in user-message-content-list
-        collect (let ((mime (mimes:mime msg)))
-                  (cond ((stringp msg)
-                         (let* ((uri (quri:make-uri :defaults msg))
-                                (scheme (quri:uri-scheme uri)))
-                           (cond ((and (not (position #\  msg :test #'equal))
-                                       scheme
-                                       (mimes:mime-equal "image/*" mime))
-                                  (make-instance 'image-content-part :image-url msg))
-                                 (t (make-instance 'text-content-part :text msg)))))
-                        ((pathnamep msg)
-                         (if (mimes:mime-equal "image/*" mime)
-                             (make-instance 'image-content-part :image-url (format-b64 (b64encode msg) mime))
-                             (if (mimes:mime-equal "audio/*" mime)
-                                 (if (not (or (mimes:mime-equal "audio/mp3" mime)
-                                              (mimes:mime-equal "audio/wav" mime)))
-                                     (error "Unsupported audio mime type")
-                                     (make-instance 'audio-content-part
-                                                    :input-audio (make-instance 'input-audio :data (format-b64 (b64encode msg) mime)
-                                                                                             :format (subseq mime (+ 1 (position #\/ mime :test #'equal))))))
-                                 (make-instance 'file-content-part :file (make-instance 'file :filename (file-namestring msg)
-                                                                                              :file-data (format-b64 (b64encode msg) mime))))))
-                        (t (error "User message type not implemented"))))))
-
-(defun make-message-from-keyword (&key system developer user assistant)
-  (cond
-    (system (make-system-message (if (typep system 'system-message-content)
-                                     system
-                                     (if (and (consp system) (every #'stringp system))
-                                         (mapcar #'make-text-content-part system)
-                                         (error "Incorrect system message content")))))
-    (developer (make-developer-message (if (typep developer 'developer-message-content)
-                                           developer
-                                           (if (and (consp developer) (every #'stringp developer))
-                                               (mapcar #'make-text-content-part developer)
-                                               (error "Incorrect developer message content")))))
-    (user (make-user-message (if (typep user 'user-message-content)
-                                 user
-                                 (if (consp user)
-                                     (build-user-message-content-parts user)
-                                     (error "Incorrect user message content")))))
-    (assistant (cond ((stringp assistant)
-                      (make-assistant-message :content assistant))
-                     ((and (consp assistant) (every #'string assistant))
-                      (make-assistant-message :content (mapcar #'make-text-content-part assistant)))
-                     ((typep assistant 'openai-sdk/response:response-message)
-                      assistant)
-                     ((typep assistant 'assistant-message)
-                      assistant)
-                     (t (error "Incorrect assistant message content"))))))
-
-(defclass chat-completion-audio (openai-request)
+(defclass chat-completion-audio (openai-json-serializable)
   ((format
     :accessor format
     :initarg :format
@@ -464,7 +391,7 @@ echo, fable, nova, onyx, sage, and shimmer."))
 (defun make-chat-completion-audio (&optional (format "mp3") (voice "echo"))
   (make-instance 'chat-completion-audio :format format :voice voice))
 
-(defclass chat-completion-function-call (openai-request)
+(defclass chat-completion-function-call (openai-json-serializable)
   ((name :initarg :name
          :accessor name
          :initform (error "required")
@@ -473,14 +400,14 @@ echo, fable, nova, onyx, sage, and shimmer."))
 (defun make-chat-completion-function-call (name)
   (make-instance 'chat-completion-function-call :name name))
 
-(defun chat-completion-function-call-p (el)
+(defun %chat-completion-function-call-p (el)
   (or (stringp el)
       (typep el 'chat-completion-function-call)))
 
 (deftype chat-completion-function-call-type ()
-  `(satisfies chat-completion-function-call-p))
+  `(satisfies %chat-completion-function-call-p))
 
-(defclass function (openai-request)
+(defclass function (openai-json-serializable)
   ((name
     :accessor name
     :initarg :name
@@ -519,19 +446,19 @@ If `strict' is `t'
 Note 1: With `strict' `t', optional fields can be denoted by appending to enum type \"null\"
 Note 2: Do not set for legacy functions.")))
 
-(defun make-function (name &rest args &key description parameters strict)
-  (declare (ignore description strict))
+(defun make-function (&rest args &key name description parameters strict)
+  (declare (ignore name description strict))
   (check-type parameters hash-table "A jzon parseable hash-table")
-  (apply #'make-instance 'function :name name args))
+  (apply #'make-instance 'function args))
 
-(defun functions-p (els)
+(defun %functions-p (els)
   (and (consp els)
        (every (lambda (el) (typep el 'function)))))
 
 (deftype functions ()
-  `(satisfies functions-p))
+  `(satisfies %functions-p))
 
-(defclass approximate (openai-request)
+(defclass approximate (openai-json-serializable)
   ((city
     :accessor city
     :initarg :city
@@ -558,7 +485,7 @@ Note 2: Do not set for legacy functions.")))
   (declare (ignore city country region timezone))
   (apply #'make-instance 'approximate args))
 
-(defclass user-location (openai-request)
+(defclass user-location (openai-json-serializable)
   ((type :initform "approximate"
          :reader type)
    (approximate
@@ -570,7 +497,7 @@ Note 2: Do not set for legacy functions.")))
 (defun make-user-location (approximate)
   (make-instance 'user-location :approximate approximate))
 
-(defclass web-search-options (openai-request)
+(defclass web-search-options (openai-json-serializable)
   ((search-context-size
     :initarg :search-context-size
     :accessor search-context-size
@@ -589,12 +516,12 @@ Note 2: Do not set for legacy functions.")))
 (defun make-web-search-options (&rest args &key search-context-size user-location)
   (apply #'make-instance 'web-search-options args))
 
-(defun list-of-strings-p (el)
+(defun %list-of-strings-p (el)
   (and (consp el)
        (every #'stringp el)))
 
 (deftype list-of-string ()
-  `(satisfies list-of-strings-p))
+  `(satisfies %list-of-strings-p))
 
 (defclass prediction-content-part (content-part)
   ((type
@@ -617,7 +544,7 @@ Note 2: Do not set for legacy functions.")))
 (deftype prediction-content ()
   `(satisfies prediction-content-p))
 
-(defclass prediction (openai-request)
+(defclass prediction (openai-json-serializable)
   ((type :initform "content" :reader type)
    (content
     :accessor content
@@ -634,14 +561,14 @@ Note 2: Do not set for legacy functions.")))
 (defun make-prediction (content)
   (make-instance #'prediction :content content))
 
-(defun stop-p (content)
+(defun %stop-p (content)
   (or (stringp content)
       (and (consp content)
            (every #'stringp content)
            (<= 4 (length content)))))
 
 (deftype stop ()
-  `(satisfies stop-p))
+  `(satisfies %stop-p))
 
 (defun response-format-type-p (el)
   (member el '("text" "json_schema" "json_object") :test #'equal))
@@ -649,7 +576,7 @@ Note 2: Do not set for legacy functions.")))
 (deftype response-format-type ()
   `(satisfies response-format-type-p))
 
-(defclass json-schema (openai-request)
+(defclass json-schema (openai-json-serializable)
   ((name
     :accessor name
     :initarg :name
@@ -679,7 +606,7 @@ Note 2: Do not set for legacy functions.")))
   (declare (ignore description schema strict))
   (apply #'make-instance 'json-schema :name name args))
 
-(defclass response-format (openai-request)
+(defclass response-format (openai-json-serializable)
   ((type
     :accessor type
     :initarg :type
@@ -697,7 +624,7 @@ Note 2: Do not set for legacy functions.")))
   (declare (ignore json-schema))
   (apply #'make-instance 'response-format :type type args))
 
-(defclass stream-options (openai-request)
+(defclass stream-options (openai-json-serializable)
   ((include-usage
     :accessor include-usage
     :initarg :include-usage
@@ -720,7 +647,7 @@ Note 2: Do not set for legacy functions.")))
   (make-instance 'tool-choice-part
                  :function (make-chat-completion-function-call tool-name)))
 
-(defun tool-choice-p (el)
+(defun %tool-choice-p (el)
   (or (and (stringp el)
            (or (string= el "none")
                (string= el "auto")
@@ -728,7 +655,7 @@ Note 2: Do not set for legacy functions.")))
       (typep el 'tool-choice-part)))
 
 (deftype tool-choice ()
-  `(satisfies tool-choice-p))
+  `(satisfies %tool-choice-p))
 
 (defun make-tool-choice (choice-or-tool-name)
   (if (typep choice-or-tool-name 'tool-choice)
@@ -750,14 +677,14 @@ Note 2: Do not set for legacy functions.")))
                                      function
                                      (apply #'make-instance 'function function))))
 
-(defun tools-p (tools)
+(defun %tools-p (tools)
   (and (consp tools)
        (every (lambda (el) (typep el 'tool)) tools)))
 
 (deftype tools ()
-  `(satisfies tools-p))
+  `(satisfies %tools-p))
 
-(defclass chat-completion (openai-request)
+(defclass chat-completion (openai-json-serializable)
   ((messages :initarg :messages
              :accessor messages
              :documentation "A list of messages comprising the conversation so far.
@@ -1007,38 +934,279 @@ Note: A max of 128 functions are supported (by OpenAI).")
     :documentation "This tool searches the web for relevant results to use in a
  response.")))
 
-(defun parse-message (msg)
-  "Chat completion request message parsing
-
-Permitted MSG content:
-- ( :system { `openai-sdk/chat-completion:system-message-content' | list-of-strings } )
-- ( :developer { `openai-sdk/chat-completion:developer-message-content' | list-of-strings } )
-- ( :assistant { `openai-sdk/response:response-message' | `openai-sdk/chat-completion:assistant-message' | `string' | list-of-strings } )
-- ( :user {`openai-sdk/chat-completion:user-message-content' | list-of-strings } )
-
-Returns the appropriate `openai-sdk/chat-completion:message'-object, or MSG if it doesnt know what to do.
-"
-  (cond ((and (consp msg) (keywordp (car msg)) (or (stringp (cadr msg)) (consp (cadr msg))))
-         (apply #'make-message-from-keyword msg))
-        ((stringp msg)
-         (make-user-message msg))
-        (t msg)))
-
-(defun make-chat-completion (messages &rest args &key audio frequency-penalty function-call
-                                                   functions logit-bias logprobs
-                                                   max-completion-tokens max-tokens
-                                                   metadata modalities model n parallel-tool-calls
-                                                   prediction presence-penalty reasoning-effort
-                                                   response-format seed service-list
-                                                   stop store stream stream-options
-                                                   temperature tool-choice tools
-                                                   top-logprobs top-p user web-search-options)
-  (declare (ignore audio frequency-penalty function-call functions logit-bias logprobs
+(defun make-chat-completion (&rest args &key messages audio frequency-penalty function-call
+                                          functions logit-bias logprobs
+                                          max-completion-tokens max-tokens
+                                          metadata modalities model n parallel-tool-calls
+                                          prediction presence-penalty reasoning-effort
+                                          response-format seed service-list
+                                          stop store stream stream-options
+                                          temperature tool-choice tools
+                                          top-logprobs top-p user web-search-options)
+  "Every parameter must be taken care of by you. See "
+  (declare (ignore messages audio frequency-penalty function-call functions logit-bias logprobs
                    max-completion-tokens max-tokens metadata modalities model n parallel-tool-calls
                    prediction presence-penalty reasoning-effort response-format seed service-list
                    stop store stream stream-options temperature tool-choice tools top-logprobs
                    top-p user web-search-options))
-  (apply #'make-instance 'chat-completion :messages (mapcar #'parse-message (etypecase messages
-                                                                              (cons messages)
-                                                                              (string (list messages))))
-         args))
+  (apply #'make-instance 'chat-completion args))
+
+;;
+;; COMPLETION-specific objects
+;;
+
+(defclass completion-tokens-details (openai-json-serializable)
+  ((accepted-prediction-tokens :accessor accepted-prediction-tokens
+                               :initarg :accepted-prediction-tokens
+                               :type integer)
+   (audio-tokens :accessor audio-tokens
+                 :initarg :audio-tokens
+                 :type integer)
+   (reasoning-tokens :accessor reasoning-tokens
+                     :initarg :reasoning-tokens
+                     :type integer)
+   (rejected-prediction-tokens :accessor rejected-prediction-tokens
+                               :initarg :rejected-prediction-tokens
+                               :type integer)))
+
+(defun make-completion-tokens-details (&rest args &key accepted-prediction-tokens audio-tokens reasoning-tokens rejected-prediction-tokens)
+  (declare (ignore accepted-prediction-tokens audio-tokens reasoning-tokens rejected-prediction-tokens))
+  (apply #'make-instance 'completion-tokens-details args))
+
+(defclass prompt-tokens-details (openai-json-serializable)
+  ((audio-tokens :accessor audio-tokens
+                 :initarg :audio-tokens
+                 :type integer)
+   (cached-tokens :accessor cached-tokens
+                  :initarg :cached-tokens
+                  :type integer)))
+
+(defun make-prompt-tokens-details (&rest args &key audio-tokens cached-tokens)
+  (declare (ignore audio-tokens cached-tokens))
+  (apply #'make-instance 'prompt-tokens-details args))
+
+(defclass usage (openai-json-serializable)
+  ((completion-tokens-details :accessor completion-tokens-details
+                              :initarg :completion-tokens-details
+                              :type completion-tokens-details)
+   (prompt-tokens-details :accessor prompt-tokens-details
+                          :initarg :prompt-tokens-details
+                          :type prompt-tokens-details)
+   (total-tokens :accessor total-tokens
+                 :initarg :total-tokens
+                 :type integer)
+   (completion-tokens :accessor completion-tokens
+                      :initarg :completion-tokens
+                      :type integer)
+   (prompt-tokens :accessor prompt-tokens
+                  :initarg :prompt-tokens
+                  :type integer)))
+
+(defun make-usage (&key completion-tokens-details prompt-tokens-details total-tokens completion-tokens prompt-tokens)
+  (make-instance 'usage :completion-tokens-details (objectify 'make-completion-tokens-details completion-tokens-details)
+                        :prompt-tokens-details (objectify 'make-prompt-tokens-details prompt-tokens-details)
+                        :total-tokens total-tokens
+                        :completion-tokens completion-tokens
+                        :prompt-tokens prompt-tokens))
+
+(defclass base-logprob (openai-json-serializable)
+  ((bytes
+    :accessor bytes
+    :initarg :bytes)
+   (logprob
+    :accessor logprob
+    :initarg :logprob
+    :type number)
+   (token
+    :accessor token
+    :initarg :token
+    :type string)))
+
+(defun make-base-logprob (&rest args &key bytes logprob token)
+  (declare (ignore bytes logprob token))
+  (apply #'make-instance 'base-logprob args))
+
+(defclass special-logprob (base-logprob)
+  ((top-logprobs :initarg :top-logprobs
+                 :accessor top-logprobs
+                 :type simple-vector)))
+
+(defun make-special-logprob (&key bytes logprob token top-logprobs)
+  (make-instance
+   'special-logprob
+   :bytes bytes
+   :logprob logprob
+   :token token
+   :top-logprobs (map 'simple-vector (lambda (tlp) (objectify 'make-base-logprob tlp)) top-logprobs)))
+
+(defclass logprobs (openai-json-serializable)
+  ((content :accessor content
+            :initarg :content
+            :type special-logprob)
+   (refusal :accessor refusal
+            :initarg :refusal
+            :type special-logprob)))
+
+(defun make-logprobs (&key content refusal)
+  (make-instance 'logprobs :content (objectify 'make-special-logprob content)
+                           :refusal (objectify 'make-special-logprob refusal)))
+
+(defclass url-citation (openai-json-serializable)
+  ((end-index
+    :accessor end-index
+    :initarg :end-index
+    :type integer)
+   (start-index
+    :accessor start-index
+    :initarg :start-index
+    :type integer)
+   (title
+    :accessor title
+    :initarg :title
+    :type string)
+   (url
+    :accessor url
+    :initarg :url
+    :type string)))
+
+(defun make-url-citation (&rest args &key end-index start-index title url)
+  (declare (ignore end-index start-index title url))
+  (apply #'make-instance 'url-citation args))
+
+(defclass annotation (openai-json-serializable)
+  ((type
+    :accessor type
+    :initarg :type
+    :type string)
+   (url-citation
+    :accessor url-citation
+    :initarg :url-citation
+    :type url-citation)))
+
+(defun make-annotation (&key type url-citation)
+  (make-instance 'annotation :type type :url-citation (objectify 'make-url-citation url-citation)))
+
+(defclass audio (openai-json-serializable)
+  ((id
+    :accessor id
+    :initarg :id
+    :type string)
+   (data
+    :accessor data
+    :initarg :data
+    :type string)
+   (expires-at
+    :accessor expires-at
+    :initarg :expires-at
+    :type local-time:timestamp)
+   (transcript
+    :accessor transcript
+    :initarg :transcript
+    :type string)))
+
+(defun make-audio (&key id data expires-at transcript)
+  (make-instance 'audio :id id :data data :expires-at (local-time:unix-to-timestamp expires-at) :transcript transcript))
+
+;; FIXME: morph into assistant-message when reusing in request
+(defclass completion-message (openai-json-serializable)
+  ((content
+    :accessor content
+    :initarg :content
+    :type string)
+   (refusal
+    :accessor refusal
+    :initarg :refusal
+    :type string)
+   (role
+    :accessor role
+    :initarg :role
+    :type string)
+   (annotations
+    :accessor annotations
+    :initarg :annotations
+    :type simple-vector)
+   (audio
+    :accessor audio
+    :initarg :audio
+    :type audio)
+   (function-call
+    :accessor function-call
+    :initarg :function-call
+    :type function-call)
+   (tool-calls
+    :accessor tool-calls
+    :initarg :tool-calls
+    :type simple-vector)))
+
+(defun make-completion-message (&key content refusal role annotations audio function-call tool-calls)
+  (make-instance
+   'completion-message
+   :content content
+   :refusal refusal
+   :role role
+   :annotations (map 'simple-vector (lambda (a) (objectify 'make-annotation a)) annotations)
+   :audio (objectify 'make-audio audio)
+   :function-call (objectify 'make-function-call function-call)
+   :tool-calls (map 'simple-vector (lambda (tc) (objectify 'make-completion-tool-call tc)) tool-calls)))
+
+(defclass choice (openai-json-serializable)
+  ((finish-reason
+    :accessor finish-reason
+    :initarg :finish-reason
+    :type string)
+   (index
+    :accessor index
+    :initarg :index
+    :type integer)
+   (logprobs
+    :accessor logprobs
+    :initarg :logprobs
+    :type logprobs)
+   (message
+    :accessor message
+    :initarg :message
+    :type completion-message)))
+
+(defun make-choice (&key finish-reason index logprobs message)
+  (make-instance 'choice :finish-reason finish-reason
+                         :index index
+                         :logprobs (objectify 'make-logprobs logprobs)
+                         :message (objectify 'make-completion-message message)))
+
+(defclass completion (openai-json-serializable)
+  ((id :accessor id
+       :initarg :id
+       :type string)
+   (choices :accessor choices
+            :initarg :choices
+            :type simple-vector)
+   (created :accessor created
+            :initarg :created
+            :type local-time:timestamp)
+   (model :accessor model
+          :initarg :model
+          :type string)
+   (object :accessor object
+           :initarg :object
+           :type string)
+   (service-tier :accessor service-tier
+                 :initarg :service-tier
+                 :type string)
+   (usage :accessor usage
+          :initarg :usage
+          :type usage)
+   (system-fingerprint :accessor system-fingerprint
+                       :initarg :system-fingerprint
+                       :type string)))
+
+(defun make-completion (&key id choices created model object service-tier usage system-fingerprint)
+  (make-instance 'completion :id id
+                             :choices (map 'simple-vector (lambda (choice)
+                                                            (objectify 'make-choice choice))
+                                           choices)
+                             :created (local-time:unix-to-timestamp created)
+                             :model model
+                             :object object
+                             :service-tier service-tier
+                             :usage (objectify 'make-usage usage)
+                             :system-fingerprint system-fingerprint))

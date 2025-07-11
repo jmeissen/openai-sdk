@@ -1,57 +1,32 @@
 (in-package #:cl-user)
 
-(defpackage openai-sdk/core
+(uiop:define-package openai-sdk/core
   (:use #:cl)
-  (:shadow #:function #:type #:format)
-  (:local-nicknames (#:jzon #:com.inuoe.jzon)))
+  (:import-from #:openai-sdk/util #:objectify)
+  (:nicknames #:oai/core)
+  (:export #:request))
 
 (in-package #:openai-sdk/core)
 
-(defmacro dg (generics)
-  "Loop GENERICS to define the generic and export it."
-  `(progn ,@(loop for g in generics
-                  collect `(progn
-                             (defgeneric ,g (object))
-                             (export ',g 'openai-sdk/core)))))
-
-(dg (%morph
-     arguments
-     audio
-     b64encode
-     content
-     data
-     function
-     function-call
-     format
-     id
-     image-url
-     input-audio
-     message
-     name
-     refusal
-     role
-     tool-calls
-     type
-     text
-     url))
-
-(defclass openai-request () ()
-  (:documentation "Inherit from OPENAI-REQUEST if the child will be serialized to
- json with `jzon'. A `jzon:coerced-fields'-method is specialized on this class to
- ensure slot-names are serialized to snake_case (since OpenAI wants this)."))
-(export 'openai-request)
-
-(defmethod jzon:coerced-fields ((element openai-request))
-  (macrolet ((%coerced-fields-slots (element)
-               `(let ((class (class-of ,element)))
-                  (c2mop:ensure-finalized class)
-                  (mapcar
-                   (lambda (s) (let ((slot-name (c2mop:slot-definition-name s)))
-                                 ;; Serialize slot-names as snake_case:
-                                 `(,(symbol-munger:lisp->underscores slot-name)
-                                   ,(slot-value ,element slot-name)
-                                   ,(c2mop:slot-definition-type s))))
-                   (remove-if-not (lambda (s) (slot-boundp ,element
-                                                           (c2mop:slot-definition-name s)))
-                                  (c2mop:class-slots class))))))
-    (%coerced-fields-slots element)))
+(defun request (method base-url path bearer-auth headers max-retries connect-timeout read-timeout content &optional response-object)
+  (multiple-value-bind (body code response-headers uri stream)
+      (let ((retry-request (dex:retry-request max-retries :interval 2)))
+        (handler-bind ((dex:http-request-internal-server-error retry-request)
+                       (dex:http-request-not-implemented retry-request)
+                       (dex:http-request-service-unavailable retry-request)
+                       (dex:http-request-bad-gateway retry-request))
+          (dex:request (concatenate 'string base-url path)
+                       :method method
+                       :bearer-auth bearer-auth
+                       :headers headers
+                       :connect-timeout connect-timeout
+                       :read-timeout read-timeout
+                       :content content)))
+    (values (let ((parsed-body (com.inuoe.jzon:parse body)))
+              (if response-object
+                  (objectify response-object parsed-body)
+                  parsed-body))
+            code
+            response-headers
+            uri
+            stream)))

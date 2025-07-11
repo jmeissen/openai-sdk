@@ -1,25 +1,14 @@
 ;;;; openai-sdk.asd
-
+#-asdf3.1 (error "system-name requires ASDF 3.1 or later.")
 (asdf:defsystem #:openai-sdk
+  :class :package-inferred-system
+  :pathname #p"src/"
   :description "OpenAI SDK API"
   :author "Jeffrey Meissen <jeffrey@meissen.email>"
-  :license  "MIT"
-  :version "0.5.0"
-  :serial t
-  :components ((:module "src"
-                :components ((:file "core")
-                             (:file "util")
-                             (:file "json")
-                             (:file "client")
-                             (:file "response")
-                             (:file "chat-completion")
-                             (:file "request")
-                             (:file "platform-apis")
-                             (:file "tool-call")
-                             (:file "structured-output")
-                             (:file "tool-schema-generator")
-                             (:file "openai-sdk"))))
-  :depends-on (:str
+  :license "MIT"
+  :version "0.0.1"
+  :depends-on (:log4cl
+               :str
                :dexador
                :alexandria
                :com.inuoe.jzon
@@ -27,4 +16,6 @@
                :cl-ppcre
                :log4cl
                :qbase64
-               :introspect-environment))
+               :openai-sdk/all
+               :openai-sdk/chat-completion/all
+               :openai-sdk/platform-apis/all))
