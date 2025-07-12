@@ -3,7 +3,7 @@
 (uiop:define-package openai-sdk/chat-completion/classes
   (:use #:cl #:openai-sdk/interface)
   (:shadowing-import-from #:openai-sdk/interface #:type #:format #:function #:stream)
-  (:import-from #:openai-sdk/util #:objectify)
+  (:import-from #:openai-sdk/util #:objectify #:format-b64)
   (:export
 
    ;; Classes
@@ -453,7 +453,8 @@ Note 2: Do not set for legacy functions.")))
 
 (defun %functions-p (els)
   (and (consp els)
-       (every (lambda (el) (typep el 'function)))))
+       (every (lambda (el) (typep el 'function))
+              els)))
 
 (deftype functions ()
   `(satisfies %functions-p))
@@ -514,6 +515,7 @@ Note 2: Do not set for legacy functions.")))
  https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat"))
 
 (defun make-web-search-options (&rest args &key search-context-size user-location)
+  (declare (ignore search-context-size user-location))
   (apply #'make-instance 'web-search-options args))
 
 (defun %list-of-strings-p (el)
