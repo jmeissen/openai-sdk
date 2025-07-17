@@ -15,7 +15,7 @@ See the git logs for more attempts at convenience that I have abandoned.
 
 Implement the complete API as 1 to 1 as possible.
 
-# Use (Chat Completions only)
+# Use
 
 ## Init
 ```lisp
@@ -171,6 +171,145 @@ chat completions are referenced with `oai/cc:`. Methods are available also with 
      (oai:choices *structured-output*) 0))))
 ```
 
+## Streaming output
+
+To do: streamed tool-calls, function calls. Though untested as of yet, structured
+output streaming should work because the message content gets filled with the
+response for that.
+
+Currently, `:stream` supports four types:
+- `t`
+- `function`
+- `stream`
+- `cons`
+
+Streaming will be disabled with `:stream` being
+- `#<unbound>`
+- `nil`
+- `'null`
+
+### t
+
+Pass the streamed message of the response to `*standard-output*`, and return the
+regular completion-object upon completion. When calling `make-chat-completion` with
+`:n > 1`, only the fist choice will be outputted.
+
+```lisp
+CL-USER> (oai:send
+          (oai/cc:make-chat-completion :messages (list (oai/cc:make-user-message "Tell me a joke in a single line"))
+                                       :stream t))
+
+I told my wife she was drawing her eyebrows too high—she looked surprised.
+#<OPENAI-SDK/CHAT-COMPLETION/CLASSES:COMPLETION {70051F7BD3}>
+```
+
+#### Only the first stream will be outputted when `:n > 1`
+```lisp
+CL-USER> (oai:send
+          (oai/cc:make-chat-completion
+           :messages (list
+                      (oai/cc:make-user-message
+                       "Give me a joke of a single line"))
+           :stream t
+           :n 2))
+Why don't scientists trust atoms? Because they make up everything!
+CL-USER> (loop for choice across (oai:choices *)
+               do (format t "~d: ~A~%" (oai:index choice) (oai:content (oai:message choice))))
+0: Why don't scientists trust atoms? Because they make up everything!
+1: Sure! Here's one: I told my computer I needed a break, and now it won't stop sending me KitKats.
+NIL
+```
+
+### another stream
+
+Redirect the chunk content directly to another stream.
+
+```lisp
+CL-USER> (oai:send
+          (oai/cc:make-chat-completion :messages (list (oai/cc:make-user-message "Tell me a joke in a single line"))
+                                       :stream *my-stream))
+#<OPENAI-SDK/CHAT-COMPLETION/CLASSES:COMPLETION {700A07E153}>
+```
+
+### function
+
+Call a function on each of the chunk-objects in the streamed response.
+```lisp
+CL-USER> (oai:send
+ (oai/cc:make-chat-completion
+  :messages (list
+             (oai/cc:make-user-message
+              "Give me a joke of a single line"))
+  :stream (lambda (chunk)
+            (format t "UPCASED chunk: ~:@(~A~)~%lowercase type: ~(~S~)~%~%"
+                    (or (oai:content (oai:delta (aref (oai:choices chunk)
+                                                      (position 0 (oai:choices chunk) :key #'oai:index))))
+                        "")
+                    (type-of chunk)))))
+UPCASED chunk:
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk: WHY
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk:  DON'T
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk:  SKELETON
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk: S
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk:  FIGHT
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk:  EACH
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk:  OTHER
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk: ?
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk:  THEY
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk:  DON'T
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk:  HAVE
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk:  THE
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk:  GUTS
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk: .
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+UPCASED chunk:
+lowercase type: openai-sdk/chat-completion/classes:completion
+
+
+#<OPENAI-SDK/CHAT-COMPLETION/CLASSES:COMPLETION {7005A35913}>
+CL-USER> (oai:content (oai:message (aref (oai:choices *) 0)))
+"Why don't skeletons fight each other? They don't have the guts."
+```
+### Or get consing
+
+with something like
+```lisp
+(oai/cc:make-chat-completion [...]
+                             :stream (list :output *my-output*
+                                           :func #'my-func
+                                           :close-stream-p nil)
+                             [...])
+```
+
 # OpenAI client definition
 
 ```lisp
@@ -267,7 +406,8 @@ writing: 2025-07-11).
 
 ## Implement
 - [x] Chat Completions API
-  - [ ] Streaming
+  - [x] Streaming
+  - [ ] Function & Tool call streaming
 - [ ] Responses API
 - [ ] Platform APIs
   - [ ] Audio

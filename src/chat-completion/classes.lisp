@@ -18,10 +18,13 @@
    #:chat-completion-audio
    #:chat-completion-function-call
    #:choice
+   #:chunk-choice
+   #:chunked-tool-call
    #:completion
    #:completion-message
    #:completion-tokens-details
    #:content-part
+   #:delta
    #:developer-message
    #:file
    #:file-content-part
@@ -64,9 +67,13 @@
    #:make-chat-completion-audio
    #:make-chat-completion-function-call
    #:make-choice
+   #:make-chunk-choice
+   #:make-chunked-completion
+   #:make-chunked-tool-call
    #:make-completion
    #:make-completion-message
    #:make-completion-tokens-details
+   #:make-delta
    #:make-developer-message
    #:make-file
    #:make-file-data-content-part
@@ -855,13 +862,14 @@ Note 2: Do not set for legacy functions.")))
     :documentation "Whether or not to store the output of this chat completion
  request for use in our model distillation or evals products.")
    (stream
-    :accessor chat-completion-stream
+    :accessor stream
     :initarg :stream
+    :type (or boolean 'null)
     :documentation "If set to true, the model response data will be streamed to the
  client as it is generated using server-sent events. See the Streaming section for
  more information, along with the streaming responses guide for more information on
  how to handle the streaming events.
- https://platform.openai.com/docs/api-reference/chat/streaming")
+ https://platform.openai.com/docs/api-reference/chat-streaming")
    (stream-options
     :accessor stream-options
     :initarg :stream-options
@@ -945,7 +953,36 @@ Note: A max of 128 functions are supported (by OpenAI).")
                                           stop store stream stream-options
                                           temperature tool-choice tools
                                           top-logprobs top-p user web-search-options)
-  "Every parameter must be taken care of by you. See "
+  "Every parameter must be taken care of by you. See the `oai/cc:chat-completions'-class
+for documentation per slot. Each parameter that has a class as type exposes a
+oai/cc:make-<class>.
+
+When the content is streamed, upon finishing, the normal completion-object is
+returned. However, the `:stream'-keyword is treated as a special property when passed
+to `oai:send'. The streamed chunks may be manipulated and redirected in four
+ways. First, when its value is `t', then the chunk-delta is written to
+`*standard-output*'. Second, if its value is of type `stream', then the chunk-delta
+is outputted to that stream. Third, if its value is of type `function', then the
+chunk-object of type `oai/cc:completion' is passed as a parameter to that
+function. Fourth, its value coheres with the argument list of
+`openai-sdk/chat-completion/request::%parse-chunks-from-stream'.
+
+So, for example, in the fourth case:
+(oai:make-chat-completion [...]
+                          :stream (list :output *my-output*
+                                        :func #'my-func
+                                        :close-stream-p nil)
+                          [...])
+
+This will:
+- output the chunk-delta content to *my-output* in reading order
+- call #'my-func on each chunk in reading order
+- not close the stream (which is returned as the last return-value of the
+  `openai-sdk/core:request').
+
+There are two limitations with outputting the chunk-delta content. The first is that,
+when passing `:n' > 1, only the first chunk-delta is outputted to the stream. Second,
+function-calls and tool-calls are not outputted."
   (declare (ignore messages audio frequency-penalty function-call functions logit-bias logprobs
                    max-completion-tokens max-tokens metadata modalities model n parallel-tool-calls
                    prediction presence-penalty reasoning-effort response-format seed service-list
@@ -1109,7 +1146,7 @@ Note: A max of 128 functions are supported (by OpenAI).")
 (defun make-audio (&key id data expires-at transcript)
   (make-instance 'audio :id id :data data :expires-at (local-time:unix-to-timestamp expires-at) :transcript transcript))
 
-;; FIXME: morph into assistant-message when reusing in request
+;; TODO: morph into assistant-message when reusing in request
 (defclass completion-message (openai-json-serializable)
   ((content
     :accessor content
@@ -1205,6 +1242,76 @@ Note: A max of 128 functions are supported (by OpenAI).")
   (make-instance 'completion :id id
                              :choices (map 'simple-vector (lambda (choice)
                                                             (objectify 'make-choice choice))
+                                           choices)
+                             :created (or (and created (local-time:unix-to-timestamp created))
+                                          (local-time:now))
+                             :model model
+                             :object object
+                             :service-tier service-tier
+                             :usage (objectify 'make-usage usage)
+                             :system-fingerprint system-fingerprint))
+
+(defclass chunked-tool-call (tool-call)
+  ((index :initarg :index
+          :accessor index
+          :type integer)))
+
+(defun make-chunked-tool-call (&key index function id type)
+  (make-instance 'chunked-tool-call :index index
+                                    :function (objectify 'make-function-call function)
+                                    :id id
+                                    :type type))
+
+(defclass delta (openai-json-serializable)
+  ((role :initarg :role
+         :accessor role
+         :type string)
+   (content :initarg :content
+            :accessor content
+            :type string)
+   (refusal :initarg :refusal
+            :accessor refusal
+            :type string)
+   (function-call :initarg :function-call
+                  :accessor function-call
+                  :type function-call)
+   (tool-calls :initarg :tool-calls
+               :accessor tool-calls
+               :type simple-vector)))
+
+(defun make-delta (&key role content refusal function-call tool-calls)
+  (make-instance 'delta :role role
+                        :content content
+                        :refusal refusal
+                        :function-call (objectify 'make-function-call function-call)
+                        :tool-calls (map 'simple-vector (lambda (tc)
+                                                          (objectify 'make-chunked-tool-call tc))
+                                         tool-calls)))
+
+(defclass chunk-choice (openai-json-serializable)
+  ((index :initarg :index
+          :accessor index
+          :type integer)
+   (delta :initarg :delta
+          :accessor delta
+          :type delta)
+   (logprobs :initarg :logprobs
+             :accessor logprobs
+             :type logprobs)
+   (finish-reason :initarg :finish-reason
+                  :accessor finish-reason
+                  :type string)))
+
+(defun make-chunk-choice (&key index delta logprobs finish-reason)
+  (make-instance 'chunk-choice :index index
+                               :delta (objectify 'make-delta delta)
+                               :logprobs (objectify 'make-logprobs logprobs)
+                               :finish-reason finish-reason))
+
+(defun make-chunked-completion (&key id choices created model object service-tier usage system-fingerprint)
+  (make-instance 'completion :id id
+                             :choices (map 'simple-vector (lambda (choice)
+                                                            (objectify 'make-chunk-choice choice))
                                            choices)
                              :created (local-time:unix-to-timestamp created)
                              :model model

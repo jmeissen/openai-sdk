@@ -25,6 +25,7 @@
            #:data
            #:default-headers
            #:default-model
+           #:delta
            #:description
            #:detail
            #:end-index
@@ -140,6 +141,7 @@
 (defgeneric data (object))
 (defgeneric default-headers (object))
 (defgeneric default-model (object))
+(defgeneric delta (object))
 (defgeneric description (object))
 (defgeneric detail (object))
 (defgeneric end-index (object))
