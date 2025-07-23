@@ -11,6 +11,10 @@
            #:audio
            #:audio-tokens
            #:b64encode
+           #:bad-request-code
+           #:bad-request-message
+           #:bad-request-param
+           #:bad-request-type
            #:base-url
            #:bytes
            #:cached-tokens
@@ -226,3 +230,8 @@
 (defgeneric user-location (object))
 (defgeneric voice (object))
 (defgeneric web-search-options (object))
+
+(defgeneric bad-request-message (object))
+(defgeneric bad-request-type (object))
+(defgeneric bad-request-parameter (object))
+(defgeneric bad-request-code (object))
