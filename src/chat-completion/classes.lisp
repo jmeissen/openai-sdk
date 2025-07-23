@@ -1243,7 +1243,12 @@ function-calls and tool-calls are not outputted."
                              :choices (map 'simple-vector (lambda (choice)
                                                             (objectify 'make-choice choice))
                                            choices)
-                             :created (or (and created (local-time:unix-to-timestamp created))
+                             :created (or (and created (etypecase created
+                                                         (real (local-time:unix-to-timestamp created))
+                                                         (hash-table (apply #'make-instance 'local-time:timestamp (loop for key being the hash-key of created
+                                                                                                                        nconc (list
+                                                                                                                               (symbol-munger:english->keyword key)
+                                                                                                                               (gethash key created)))))))
                                           (local-time:now))
                              :model model
                              :object object

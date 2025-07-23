@@ -50,6 +50,7 @@
            #:index
            #:input-audio
            #:json-schema
+           #:load-completion
            #:logit-bias
            #:logprob
            #:logprobs
@@ -81,6 +82,7 @@
            #:rejected-prediction-tokens
            #:response-format
            #:role
+           #:save-completion
            #:schema
            #:search-context-size
            #:seed
@@ -166,6 +168,7 @@
 (defgeneric index (object))
 (defgeneric input-audio (object))
 (defgeneric json-schema (object))
+(defgeneric load-completion (uri))
 (defgeneric logit-bias (object))
 (defgeneric logprob (object))
 (defgeneric logprobs (object))
@@ -196,6 +199,7 @@
 (defgeneric rejected-prediction-tokens (object))
 (defgeneric response-format (object))
 (defgeneric role (object))
+(defgeneric save-completion (object uri))
 (defgeneric schema (object))
 (defgeneric search-context-size (object))
 (defgeneric seed (object))
@@ -230,6 +234,7 @@
 (defgeneric user-location (object))
 (defgeneric voice (object))
 (defgeneric web-search-options (object))
+
 
 (defgeneric bad-request-message (object))
 (defgeneric bad-request-type (object))
